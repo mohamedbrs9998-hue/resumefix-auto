@@ -1,3 +1,4 @@
+cd ~/Desktop/resumefix-auto && cat > app/api/generate-full-cv/route.js <<'EOF'
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
@@ -38,7 +39,7 @@ export async function POST(req) {
       );
     }
 
-    const prompt = 
+    const prompt = `
 Create a complete professional CV for the following candidate.
 
 Return JSON only with these exact keys:
@@ -71,7 +72,7 @@ Education: ${education || ""}
 Skills: ${skills || ""}
 Certifications: ${certifications || ""}
 Languages: ${languages || ""}
-;
+`;
 
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
@@ -101,3 +102,8 @@ Languages: ${languages || ""}
     );
   }
 }
+EOF
+git add app/api/generate-full-cv/route.js
+git commit -m "Fix generate full CV route syntax"
+git push
+
