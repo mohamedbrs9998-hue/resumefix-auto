@@ -1,4 +1,41 @@
+"use client";
+
+import { useState } from "react";
+
 export default function GeneratePage() {
+  const [form, setForm] = useState({
+    fullName: "",
+    targetRole: "",
+    yearsExperience: "",
+    location: "",
+    phone: "",
+    email: "",
+    summaryNotes: "",
+    workExperience: "",
+    education: "",
+    skills: "",
+    certifications: "",
+    languages: "",
+  });
+
+  function updateField(key, value) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function handleContinue() {
+    if (!form.fullName || !form.targetRole || !form.email) {
+      alert("Please fill in Full name, Target role, and Email first.");
+      return;
+    }
+
+    try {
+      localStorage.setItem("resumefix_form_data", JSON.stringify(form));
+      window.location.href = "https://payhip.com/order?link=J7W4G";
+    } catch (error) {
+      alert("Could not save your details before payment.");
+    }
+  }
+
   return (
     <main
       style={{
@@ -18,80 +55,122 @@ export default function GeneratePage() {
           Fill in the details below, then continue to payment.
         </p>
 
-        <Field label="Full name" placeholder="Enter your full name" />
-        <Field label="Target role" placeholder="Enter your target role" />
-        <Field label="Years of experience" placeholder="Enter years of experience" />
-        <Field label="Location" placeholder="Enter your location" />
-        <Field label="Phone" placeholder="Enter your phone number" />
-        <Field label="Email" placeholder="Enter your email" />
+        <Input
+          label="Full name"
+          value={form.fullName}
+          onChange={(v) => updateField("fullName", v)}
+          placeholder="Enter your full name"
+        />
+        <Input
+          label="Target role"
+          value={form.targetRole}
+          onChange={(v) => updateField("targetRole", v)}
+          placeholder="Enter your target role"
+        />
+        <Input
+          label="Years of experience"
+          value={form.yearsExperience}
+          onChange={(v) => updateField("yearsExperience", v)}
+          placeholder="Enter years of experience"
+        />
+        <Input
+          label="Location"
+          value={form.location}
+          onChange={(v) => updateField("location", v)}
+          placeholder="Enter your location"
+        />
+        <Input
+          label="Phone"
+          value={form.phone}
+          onChange={(v) => updateField("phone", v)}
+          placeholder="Enter your phone number"
+        />
+        <Input
+          label="Email"
+          value={form.email}
+          onChange={(v) => updateField("email", v)}
+          placeholder="Enter your email"
+        />
 
         <TextField
           label="Short background / summary notes"
+          value={form.summaryNotes}
+          onChange={(v) => updateField("summaryNotes", v)}
           placeholder="Write a few lines about your background and strengths..."
           rows={5}
         />
 
         <TextField
           label="Work experience"
+          value={form.workExperience}
+          onChange={(v) => updateField("workExperience", v)}
           placeholder="Write your work experience here..."
           rows={8}
         />
 
         <TextField
           label="Education"
+          value={form.education}
+          onChange={(v) => updateField("education", v)}
           placeholder="Write your education here..."
           rows={5}
         />
 
         <TextField
           label="Skills"
+          value={form.skills}
+          onChange={(v) => updateField("skills", v)}
           placeholder="List your skills here..."
           rows={4}
         />
 
         <TextField
           label="Certifications"
+          value={form.certifications}
+          onChange={(v) => updateField("certifications", v)}
           placeholder="List certifications here..."
           rows={4}
         />
 
         <TextField
           label="Languages"
+          value={form.languages}
+          onChange={(v) => updateField("languages", v)}
           placeholder="e.g. Arabic, English"
           rows={3}
         />
 
         <div style={{ marginTop: 20 }}>
-          <a
-            href="https://payhip.com/order?link=J7W4G"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            onClick={handleContinue}
             style={{
-              display: "inline-block",
               padding: "14px 22px",
               borderRadius: 12,
               background: "#60a5fa",
               color: "#081018",
               fontWeight: 800,
               fontSize: 18,
-              textDecoration: "none",
+              border: "none",
+              cursor: "pointer",
             }}
           >
             Continue to Payment
-          </a>
+          </button>
         </div>
       </div>
     </main>
   );
 }
 
-function Field({ label, placeholder }) {
+function Input({ label, value, onChange, placeholder }) {
   return (
     <label style={{ display: "block", marginBottom: 16 }}>
       <span style={{ display: "block", marginBottom: 8, fontWeight: 700 }}>
         {label}
       </span>
       <input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         style={{
           width: "100%",
@@ -107,13 +186,15 @@ function Field({ label, placeholder }) {
   );
 }
 
-function TextField({ label, placeholder, rows = 6 }) {
+function TextField({ label, value, onChange, placeholder, rows = 6 }) {
   return (
     <label style={{ display: "block", marginBottom: 16 }}>
       <span style={{ display: "block", marginBottom: 8, fontWeight: 700 }}>
         {label}
       </span>
       <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
         style={{
