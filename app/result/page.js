@@ -107,26 +107,19 @@ export default function ResultPage() {
               border: "1px solid #334155",
             }}
           >
-            <Section title="Professional Summary" text={result.professional_summary} />
-            <Section title="Core Skills" text={result.core_skills} />
-            <Section title="Professional Experience" text={result.professional_experience} />
-            <Section title="Education" text={result.education} />
-            <Section title="Certifications" text={result.certifications} />
-            <Section title="Languages" text={result.languages} />
+            <div
+              style={{
+                whiteSpace: "pre-wrap",
+                lineHeight: 1.9,
+                color: "#e2e8f0",
+                fontSize: 16,
+              }}
+            >
+              {result.cv_text}
+            </div>
           </div>
         )}
       </div>
     </main>
-  );
-}
-
-function Section({ title, text }) {
-  return (
-    <section style={{ marginBottom: 24 }}>
-      <h2 style={{ fontSize: 24, marginBottom: 10 }}>{title}</h2>
-      <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.8, color: "#e2e8f0" }}>
-        {text}
-      </div>
-    </section>
   );
 }

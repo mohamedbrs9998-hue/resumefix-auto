@@ -16,72 +16,13 @@ function supabaseHeaders() {
   };
 }
 
-function safeJsonParse(text) {
-  if (!text) return null;
-
-  const trimmed = text.trim();
-
-  try {
-    return JSON.parse(trimmed);
-  } catch {}
-
-  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  if (fenced?.[1]) {
-    try {
-      return JSON.parse(fenced[1].trim());
-    } catch {}
-  }
-
-  const firstBrace = trimmed.indexOf("{");
-  const lastBrace = trimmed.lastIndexOf("}");
-  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    try {
-      return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1));
-    } catch {}
-  }
-
-  return null;
-}
-
-function fallbackResult(order, content) {
-  const baseSkills = order.skills || "Communication, teamwork, problem solving";
-  const baseEducation = order.education || "Education details not provided";
-  const baseCerts = order.certifications || "Certifications not provided";
-  const baseLanguages = order.languages || "English";
-
-  return {
-    professional_summary:
-      content ||
-      `Professional ${order.target_role || "candidate"} with ${order.years_experience || "relevant"} experience, presenting a stronger ATS-friendly profile with clear structure and polished wording.`,
-    core_skills: baseSkills,
-    professional_experience:
-      order.work_experience || "Work experience details were not provided.",
-    education: baseEducation,
-    certifications: baseCerts,
-    languages: baseLanguages,
-  };
-}
-
-async function generateCvFromOrder(order) {
+async function generateCvText(order) {
   const prompt = `
-Create a complete professional CV for the following candidate.
+Write a complete, polished, ATS-friendly professional CV in plain text for this candidate.
 
-Return JSON only with these exact keys:
-- professional_summary
-- core_skills
-- professional_experience
-- education
-- certifications
-- languages
-
-Rules:
-- Make it ATS-friendly
-- Make it professional and strong
-- Do not invent fake experience
-- Improve wording and structure
-- Use the user's information only
-- professional_experience should be rewritten as polished CV bullet points
-- core_skills should be a clean list in text form
+Do NOT return JSON.
+Do NOT use markdown code fences.
+Return only the final CV text.
 
 Candidate details:
 Full name: ${order.full_name || ""}
@@ -104,7 +45,7 @@ Languages: ${order.languages || ""}
       {
         role: "system",
         content:
-          "You are an expert professional CV writer. Return JSON only. Do not add commentary outside JSON.",
+          "You are an expert professional CV writer. Return only plain text CV content.",
       },
       {
         role: "user",
@@ -114,12 +55,7 @@ Languages: ${order.languages || ""}
     temperature: 0.4,
   });
 
-  const content = completion.choices?.[0]?.message?.content || "";
-  const parsed = safeJsonParse(content);
-
-  if (parsed) return parsed;
-
-  return fallbackResult(order, content);
+  return (completion.choices?.[0]?.message?.content || "").trim();
 }
 
 export async function POST(req) {
@@ -158,11 +94,16 @@ export async function POST(req) {
 
     const order = orderData[0];
 
-    if (order.result_json) {
-      return NextResponse.json({ ok: true, result: order.result_json });
+    if (order.result_json?.cv_text) {
+      return NextResponse.json({
+        ok: true,
+        result: order.result_json,
+      });
     }
 
-    const resultJson = await generateCvFromOrder(order);
+    const cvText = await generateCvText(order);
+
+    const resultJson = { cv_text: cvText };
 
     const updateRes = await fetch(
       `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`,
@@ -188,7 +129,10 @@ export async function POST(req) {
       );
     }
 
-    return NextResponse.json({ ok: true, result: resultJson });
+    return NextResponse.json({
+      ok: true,
+      result: resultJson,
+    });
   } catch (error) {
     return NextResponse.json(
       { ok: false, error: error?.message || "Generation failed" },
