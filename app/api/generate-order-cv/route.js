@@ -1,8 +1,12 @@
+import OpenAI from "openai";
 import { NextResponse } from "next/server";
+
+const client = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 function supabaseHeaders() {
   return {
@@ -12,8 +16,9 @@ function supabaseHeaders() {
   };
 }
 
-function extractJson(text) {
-  if (!text) return {};
+function safeJsonParse(text) {
+  if (!text) return null;
+
   const trimmed = text.trim();
 
   try {
@@ -22,16 +27,39 @@ function extractJson(text) {
 
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
   if (fenced?.[1]) {
-    return JSON.parse(fenced[1].trim());
+    try {
+      return JSON.parse(fenced[1].trim());
+    } catch {}
   }
 
   const firstBrace = trimmed.indexOf("{");
   const lastBrace = trimmed.lastIndexOf("}");
   if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-    return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1));
+    try {
+      return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1));
+    } catch {}
   }
 
-  throw new Error("Could not extract valid JSON from AI response");
+  return null;
+}
+
+function fallbackResult(order, content) {
+  const baseSkills = order.skills || "Communication, teamwork, problem solving";
+  const baseEducation = order.education || "Education details not provided";
+  const baseCerts = order.certifications || "Certifications not provided";
+  const baseLanguages = order.languages || "English";
+
+  return {
+    professional_summary:
+      content ||
+      `Professional ${order.target_role || "candidate"} with ${order.years_experience || "relevant"} experience, presenting a stronger ATS-friendly profile with clear structure and polished wording.`,
+    core_skills: baseSkills,
+    professional_experience:
+      order.work_experience || "Work experience details were not provided.",
+    education: baseEducation,
+    certifications: baseCerts,
+    languages: baseLanguages,
+  };
 }
 
 async function generateCvFromOrder(order) {
@@ -70,37 +98,28 @@ Certifications: ${order.certifications || ""}
 Languages: ${order.languages || ""}
 `;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are an expert professional CV writer. Return JSON only.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.4,
-    }),
+  const completion = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You are an expert professional CV writer. Return JSON only. Do not add commentary outside JSON.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    temperature: 0.4,
   });
 
-  const data = await response.json();
+  const content = completion.choices?.[0]?.message?.content || "";
+  const parsed = safeJsonParse(content);
 
-  if (!response.ok) {
-    throw new Error(data?.error?.message || "OpenAI generation failed");
-  }
+  if (parsed) return parsed;
 
-  const content = data?.choices?.[0]?.message?.content || "";
-  return extractJson(content);
+  return fallbackResult(order, content);
 }
 
 export async function POST(req) {
@@ -114,7 +133,7 @@ export async function POST(req) {
       );
     }
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !OPENAI_API_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !process.env.OPENAI_API_KEY) {
       return NextResponse.json(
         { ok: false, error: "Missing environment variables" },
         { status: 500 }
