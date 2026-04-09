@@ -5,46 +5,24 @@ import { useEffect, useState } from "react";
 export default function ResultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [result, setResult] = useState(null);
+  const [orderId, setOrderId] = useState("");
 
   useEffect(() => {
-    async function generateCV() {
-      try {
-        const saved = localStorage.getItem("resumefix_form_data");
+    try {
+      const savedOrderId = localStorage.getItem("resumefix_order_id");
 
-        if (!saved) {
-          setError("No saved form data found.");
-          setLoading(false);
-          return;
-        }
-
-        const form = JSON.parse(saved);
-
-        const res = await fetch("/api/generate-full-cv", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(form),
-        });
-
-        const data = await res.json();
-
-        if (!res.ok || !data.ok) {
-          setError(data.error || "Failed to generate CV.");
-          setLoading(false);
-          return;
-        }
-
-        setResult(data.result);
+      if (!savedOrderId) {
+        setError("No saved order found.");
         setLoading(false);
-      } catch (err) {
-        setError("Something went wrong while generating the CV.");
-        setLoading(false);
+        return;
       }
-    }
 
-    generateCV();
+      setOrderId(savedOrderId);
+      setLoading(false);
+    } catch (err) {
+      setError("Could not load your order.");
+      setLoading(false);
+    }
   }, []);
 
   return (
@@ -64,7 +42,7 @@ export default function ResultPage() {
 
         {loading ? (
           <p style={{ color: "#cbd5e1", fontSize: 18 }}>
-            Generating your professional CV...
+            Loading your order...
           </p>
         ) : error ? (
           <p style={{ color: "#fca5a5", fontSize: 18 }}>{error}</p>
@@ -78,26 +56,20 @@ export default function ResultPage() {
               border: "1px solid #334155",
             }}
           >
-            <Section title="Professional Summary" text={result.professional_summary} />
-            <Section title="Core Skills" text={result.core_skills} />
-            <Section title="Professional Experience" text={result.professional_experience} />
-            <Section title="Education" text={result.education} />
-            <Section title="Certifications" text={result.certifications} />
-            <Section title="Languages" text={result.languages} />
+            <p style={{ fontSize: 18, color: "#cbd5e1" }}>
+              Your order was found successfully.
+            </p>
+
+            <p style={{ fontSize: 18, color: "#fff", marginTop: 12 }}>
+              Order ID: <strong>{orderId}</strong>
+            </p>
+
+            <p style={{ fontSize: 16, color: "#94a3b8", marginTop: 18 }}>
+              Next step: AI generation will be connected to this saved order.
+            </p>
           </div>
         )}
       </div>
     </main>
-  );
-}
-
-function Section({ title, text }) {
-  return (
-    <section style={{ marginBottom: 24 }}>
-      <h2 style={{ fontSize: 24, marginBottom: 10 }}>{title}</h2>
-      <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.8, color: "#e2e8f0" }}>
-        {text}
-      </div>
-    </section>
   );
 }
