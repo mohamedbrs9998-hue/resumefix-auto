@@ -84,7 +84,7 @@ export default function GeneratePage() {
         <Input
           label="Full name"
           value={form.fullName}
-          onChange={(v) => updateField("FullName".toLowerCase(), v)}
+          onChange={(v) => updateField("fullName", v)}
           placeholder="Enter your full name"
         />
         <Input
