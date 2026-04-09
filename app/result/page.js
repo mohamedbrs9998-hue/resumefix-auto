@@ -23,7 +23,7 @@ export default function ResultPage() {
 
         setOrderId(savedOrderId);
 
-        const res = await fetch("/api/generate-order-cv", {
+        const res = await fetch("/api/generate-order-cv-v2", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -66,15 +66,7 @@ export default function ResultPage() {
         </h1>
 
         {loading ? (
-          <div
-            style={{
-              marginTop: 24,
-              padding: 20,
-              borderRadius: 16,
-              background: "#0f172a",
-              border: "1px solid #334155",
-            }}
-          >
+          <div style={{ marginTop: 24, padding: 20, borderRadius: 16, background: "#0f172a", border: "1px solid #334155" }}>
             <p style={{ color: "#cbd5e1", fontSize: 18 }}>
               Generating your professional CV...
             </p>
@@ -83,38 +75,15 @@ export default function ResultPage() {
             </p>
           </div>
         ) : error ? (
-          <div
-            style={{
-              marginTop: 24,
-              padding: 20,
-              borderRadius: 16,
-              background: "#0f172a",
-              border: "1px solid #334155",
-            }}
-          >
+          <div style={{ marginTop: 24, padding: 20, borderRadius: 16, background: "#0f172a", border: "1px solid #334155" }}>
             <p style={{ color: "#fca5a5", fontSize: 18 }}>{error}</p>
             <p style={{ color: "#94a3b8", fontSize: 16, marginTop: 8 }}>
               Order ID: {orderId}
             </p>
           </div>
         ) : (
-          <div
-            style={{
-              marginTop: 24,
-              padding: 20,
-              borderRadius: 16,
-              background: "#0f172a",
-              border: "1px solid #334155",
-            }}
-          >
-            <div
-              style={{
-                whiteSpace: "pre-wrap",
-                lineHeight: 1.9,
-                color: "#e2e8f0",
-                fontSize: 16,
-              }}
-            >
+          <div style={{ marginTop: 24, padding: 20, borderRadius: 16, background: "#0f172a", border: "1px solid #334155" }}>
+            <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.9, color: "#e2e8f0", fontSize: 16 }}>
               {result.cv_text}
             </div>
           </div>
