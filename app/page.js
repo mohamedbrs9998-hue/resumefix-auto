@@ -1,66 +1,108 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+import Link from "next/link";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main
+      style={{
+        minHeight: "100vh",
+        padding: "40px 24px 72px",
+        color: "#f8fafc",
+        background:
+          "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
+      }}
+    >
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div
+          style={{
+            padding: 28,
+            borderRadius: 28,
+            border: "1px solid rgba(148,163,184,0.16)",
+            background: "rgba(15,23,42,0.88)",
+            boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
+          }}
+        >
+          <div
+            style={{
+              display: "inline-block",
+              marginBottom: 18,
+              padding: "10px 16px",
+              borderRadius: 999,
+              background: "rgba(96,165,250,0.14)",
+              color: "#dbeafe",
+              fontSize: 14,
+              fontWeight: 700,
+            }}
+          >
+            Fill details → Pay → Get your CV
+          </div>
+
+          <h1
+            style={{
+              margin: "0 0 18px",
+              fontSize: "clamp(42px, 7vw, 76px)",
+              lineHeight: 0.95,
+              letterSpacing: "-0.04em",
+              fontWeight: 800,
+            }}
+          >
+            ResumeFix AI
+          </h1>
+
+          <p
+            style={{
+              margin: 0,
+              maxWidth: 760,
+              color: "#dbe4f0",
+              fontSize: "clamp(18px, 2vw, 22px)",
+              lineHeight: 1.7,
+            }}
+          >
+            Generate a stronger ATS-friendly CV with a cleaner, professional
+            structure and wording.
           </p>
+
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 28 }}>
+            <Link
+              href="/generate"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: 210,
+                padding: "16px 24px",
+                borderRadius: 18,
+                textDecoration: "none",
+                fontWeight: 800,
+                fontSize: 18,
+                background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
+                color: "#081018",
+              }}
+            >
+              Start My CV
+            </Link>
+
+            <Link
+              href="/result"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: 180,
+                padding: "16px 24px",
+                borderRadius: 18,
+                textDecoration: "none",
+                fontWeight: 800,
+                fontSize: 18,
+                border: "1px solid rgba(148,163,184,0.22)",
+                background: "rgba(15,23,42,0.66)",
+                color: "#f8fafc",
+              }}
+            >
+              Open Result
+            </Link>
+          </div>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
