@@ -102,7 +102,6 @@ export async function POST(req) {
     }
 
     const cvText = await generateCvText(order);
-
     const resultJson = { cv_text: cvText };
 
     const updateRes = await fetch(
