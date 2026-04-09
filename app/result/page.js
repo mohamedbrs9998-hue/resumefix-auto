@@ -8,23 +8,46 @@ export default function ResultPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [orderId, setOrderId] = useState("");
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
-    try {
-      const savedOrderId = localStorage.getItem(ORDER_KEY);
+    async function loadAndGenerate() {
+      try {
+        const savedOrderId = localStorage.getItem(ORDER_KEY);
 
-      if (!savedOrderId) {
-        setError("No saved order found.");
+        if (!savedOrderId) {
+          setError("No saved order found.");
+          setLoading(false);
+          return;
+        }
+
+        setOrderId(savedOrderId);
+
+        const res = await fetch("/api/generate-order-cv", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ orderId: savedOrderId }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.ok || !data.result) {
+          setError(data.error || "Failed to generate CV.");
+          setLoading(false);
+          return;
+        }
+
+        setResult(data.result);
         setLoading(false);
-        return;
+      } catch (err) {
+        setError("Could not generate your CV.");
+        setLoading(false);
       }
-
-      setOrderId(savedOrderId);
-      setLoading(false);
-    } catch (err) {
-      setError("Could not load your order.");
-      setLoading(false);
     }
+
+    loadAndGenerate();
   }, []);
 
   return (
@@ -43,11 +66,37 @@ export default function ResultPage() {
         </h1>
 
         {loading ? (
-          <p style={{ color: "#cbd5e1", fontSize: 18 }}>
-            Loading your order...
-          </p>
+          <div
+            style={{
+              marginTop: 24,
+              padding: 20,
+              borderRadius: 16,
+              background: "#0f172a",
+              border: "1px solid #334155",
+            }}
+          >
+            <p style={{ color: "#cbd5e1", fontSize: 18 }}>
+              Generating your professional CV...
+            </p>
+            <p style={{ color: "#94a3b8", fontSize: 16, marginTop: 8 }}>
+              Order ID: {orderId}
+            </p>
+          </div>
         ) : error ? (
-          <p style={{ color: "#fca5a5", fontSize: 18 }}>{error}</p>
+          <div
+            style={{
+              marginTop: 24,
+              padding: 20,
+              borderRadius: 16,
+              background: "#0f172a",
+              border: "1px solid #334155",
+            }}
+          >
+            <p style={{ color: "#fca5a5", fontSize: 18 }}>{error}</p>
+            <p style={{ color: "#94a3b8", fontSize: 16, marginTop: 8 }}>
+              Order ID: {orderId}
+            </p>
+          </div>
         ) : (
           <div
             style={{
@@ -58,20 +107,26 @@ export default function ResultPage() {
               border: "1px solid #334155",
             }}
           >
-            <p style={{ fontSize: 18, color: "#cbd5e1" }}>
-              Your order was found successfully.
-            </p>
-
-            <p style={{ fontSize: 18, color: "#fff", marginTop: 12 }}>
-              Order ID: <strong>{orderId}</strong>
-            </p>
-
-            <p style={{ fontSize: 16, color: "#94a3b8", marginTop: 18 }}>
-              Next step: AI generation will be connected to this saved order.
-            </p>
+            <Section title="Professional Summary" text={result.professional_summary} />
+            <Section title="Core Skills" text={result.core_skills} />
+            <Section title="Professional Experience" text={result.professional_experience} />
+            <Section title="Education" text={result.education} />
+            <Section title="Certifications" text={result.certifications} />
+            <Section title="Languages" text={result.languages} />
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+function Section({ title, text }) {
+  return (
+    <section style={{ marginBottom: 24 }}>
+      <h2 style={{ fontSize: 24, marginBottom: 10 }}>{title}</h2>
+      <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.8, color: "#e2e8f0" }}>
+        {text}
+      </div>
+    </section>
   );
 }
