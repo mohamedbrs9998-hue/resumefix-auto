@@ -18,21 +18,42 @@ export default function GeneratePage() {
     languages: "",
   });
 
+  const [loading, setLoading] = useState(false);
+
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function handleContinue() {
+  async function handleContinue() {
     if (!form.fullName || !form.targetRole || !form.email) {
       alert("Please fill in Full name, Target role, and Email first.");
       return;
     }
 
     try {
-      localStorage.setItem("resumefix_form_data", JSON.stringify(form));
+      setLoading(true);
+
+      const res = await fetch("/api/save-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok || !data.orderId) {
+        alert(data.error || "Failed to save your details");
+        setLoading(false);
+        return;
+      }
+
+      localStorage.setItem("resumefix_order_id", data.orderId);
       window.location.href = "https://payhip.com/order?link=J7W4G";
     } catch (error) {
-      alert("Could not save your details before payment.");
+      alert("Something went wrong while saving your details.");
+      setLoading(false);
     }
   }
 
@@ -143,6 +164,7 @@ export default function GeneratePage() {
         <div style={{ marginTop: 20 }}>
           <button
             onClick={handleContinue}
+            disabled={loading}
             style={{
               padding: "14px 22px",
               borderRadius: 12,
@@ -152,9 +174,10 @@ export default function GeneratePage() {
               fontSize: 18,
               border: "none",
               cursor: "pointer",
+              opacity: loading ? 0.7 : 1,
             }}
           >
-            Continue to Payment
+            {loading ? "Saving..." : "Continue to Payment"}
           </button>
         </div>
       </div>
