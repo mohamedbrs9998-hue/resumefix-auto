@@ -12,6 +12,28 @@ function supabaseHeaders() {
   };
 }
 
+function extractJson(text) {
+  if (!text) return {};
+  const trimmed = text.trim();
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {}
+
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenced?.[1]) {
+    return JSON.parse(fenced[1].trim());
+  }
+
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1));
+  }
+
+  throw new Error("Could not extract valid JSON from AI response");
+}
+
 async function generateCvFromOrder(order) {
   const prompt = `
 Create a complete professional CV for the following candidate.
@@ -56,17 +78,18 @@ Languages: ${order.languages || ""}
     },
     body: JSON.stringify({
       model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
       messages: [
         {
           role: "system",
-          content: "You are an expert professional CV writer. Return only valid JSON.",
+          content:
+            "You are an expert professional CV writer. Return JSON only.",
         },
         {
           role: "user",
           content: prompt,
         },
       ],
+      temperature: 0.4,
     }),
   });
 
@@ -76,8 +99,8 @@ Languages: ${order.languages || ""}
     throw new Error(data?.error?.message || "OpenAI generation failed");
   }
 
-  const content = data?.choices?.[0]?.message?.content || "{}";
-  return JSON.parse(content);
+  const content = data?.choices?.[0]?.message?.content || "";
+  return extractJson(content);
 }
 
 export async function POST(req) {
