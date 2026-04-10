@@ -69,9 +69,17 @@ export async function POST(req) {
       );
     }
 
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { ok: false, error: "Missing environment variables" },
+   if (!SUPABASE_URL  !SUPABASE_SERVICE_ROLE_KEY  !process.env.OPENAI_API_KEY) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Missing environment variables",
+      debug: {
+        hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+        hasSupabaseUrl: !!SUPABASE_URL,
+        hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY,
+      },
+    },
         { status: 500 }
       );
     }
