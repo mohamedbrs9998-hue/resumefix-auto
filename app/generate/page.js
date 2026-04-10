@@ -36,7 +36,16 @@ export default function GeneratePage() {
         body: JSON.stringify(form),
       });
 
-      const data = await res.json();
+      const raw = await res.text();
+
+      let data;
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch {
+        alert(raw || "Invalid server response");
+        setLoading(false);
+        return;
+      }
 
       if (!res.ok || !data?.ok || !data?.orderId) {
         const message =
