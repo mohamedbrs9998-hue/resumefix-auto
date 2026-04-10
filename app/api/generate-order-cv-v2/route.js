@@ -10,14 +10,6 @@ function pick(...values) {
   return "";
 }
 
-function supabaseHeaders(serviceRoleKey) {
-  return {
-    "Content-Type": "application/json",
-    apikey: serviceRoleKey,
-    Authorization: `Bearer ${serviceRoleKey}`,
-  };
-}
-
 function buildPrompt(order) {
   const fullName = pick(order.fullName, order.full_name, "Candidate");
   const jobTitle = pick(
@@ -87,6 +79,14 @@ LANGUAGES
 `.trim();
 }
 
+function supabaseHeaders(serviceRoleKey) {
+  return {
+    "Content-Type": "application/json",
+    apikey: serviceRoleKey,
+    Authorization: `Bearer ${serviceRoleKey}`,
+  };
+}
+
 export async function POST(req) {
   try {
     const { orderId } = await req.json();
@@ -99,17 +99,13 @@ export async function POST(req) {
     }
 
     const SUPABASE_URL =
-      process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      process.env.SUPABASE_URL ||
-      "";
+      process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
 
     const SUPABASE_SERVICE_ROLE_KEY =
       process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
     const OPENAI_API_KEY =
-      process.env.OPENAI_API_KEY ||
-      process.env.OPENAI_KEY ||
-      "";
+      process.env.OPENAI_API_KEY || process.env.OPENAI_KEY || "";
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !OPENAI_API_KEY) {
       return NextResponse.json(
@@ -133,7 +129,7 @@ export async function POST(req) {
 
     if (!orderRes.ok) {
       return NextResponse.json(
-        { ok: false, error: JSON.stringify(orderData) },
+        { ok: false, error: `Failed to fetch order: ${JSON.stringify(orderData)}` },
         { status: orderRes.status }
       );
     }
@@ -196,7 +192,7 @@ export async function POST(req) {
 
     if (!updateRes.ok) {
       return NextResponse.json(
-        { ok: false, error: JSON.stringify(updateData) },
+        { ok: false, error: `Failed to save CV: ${JSON.stringify(updateData)}` },
         { status: updateRes.status }
       );
     }
