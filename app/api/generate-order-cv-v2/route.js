@@ -12,7 +12,7 @@ function supabaseHeaders() {
   return {
     "Content-Type": "application/json",
     apikey: SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+    Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY},
   };
 }
 
