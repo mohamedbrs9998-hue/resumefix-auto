@@ -2,21 +2,18 @@
 
 import { useState } from "react";
 
-const ORDER_KEY = "resumefix_order_id_v2";
+const ORDER_KEY = "resumefix_order_id";
 
 export default function GeneratePage() {
   const [form, setForm] = useState({
     fullName: "",
-    targetRole: "",
-    yearsExperience: "",
-    location: "",
-    phone: "",
+    jobTitle: "",
     email: "",
-    summaryNotes: "",
-    workExperience: "",
+    phone: "",
+    summary: "",
+    experience: "",
     education: "",
     skills: "",
-    certifications: "",
     languages: "",
   });
 
@@ -26,18 +23,11 @@ export default function GeneratePage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function handleContinue() {
-    if (!form.fullName || !form.targetRole || !form.email) {
-      alert("Please fill in Full name, Target role, and Email first.");
-      return;
-    }
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      setLoading(true);
-
-      localStorage.removeItem("resumefix_order_id");
-      localStorage.removeItem(ORDER_KEY);
-
       const res = await fetch("/api/save-order", {
         method: "POST",
         headers: {
@@ -48,8 +38,13 @@ export default function GeneratePage() {
 
       const data = await res.json();
 
-      if (!res.ok || !data.ok || !data.orderId) {
-        alert(data.error || "Failed to save your details");
+      if (!res.ok || !data?.ok || !data?.orderId) {
+        const message =
+          typeof data?.error === "string"
+            ? data.error
+            : data?.error?.message || JSON.stringify(data?.error || data);
+
+        alert(message || "Failed to save your details");
         setLoading(false);
         return;
       }
@@ -57,7 +52,12 @@ export default function GeneratePage() {
       localStorage.setItem(ORDER_KEY, data.orderId);
       window.location.href = "https://payhip.com/order?link=J7W4G";
     } catch (error) {
-      alert("Something went wrong while saving your details.");
+      const message =
+        typeof error === "string"
+          ? error
+          : error?.message || JSON.stringify(error);
+
+      alert(message || "Something went wrong while saving your details.");
       setLoading(false);
     }
   }
@@ -68,169 +68,215 @@ export default function GeneratePage() {
         minHeight: "100vh",
         background:
           "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
-        color: "#fff",
+        color: "#f8fafc",
         padding: "32px 20px 60px",
       }}
     >
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
-        <h1 style={{ fontSize: 44, fontWeight: 800, marginBottom: 8 }}>
-          Generate Full CV
-        </h1>
-
-        <p style={{ color: "#cbd5e1", marginBottom: 24, fontSize: 18 }}>
-          Fill in the details below, then continue to payment.
-        </p>
-
-        <Input
-          label="Full name"
-          value={form.fullName}
-          onChange={(v) => updateField("fullName", v)}
-          placeholder="Enter your full name"
-        />
-        <Input
-          label="Target role"
-          value={form.targetRole}
-          onChange={(v) => updateField("targetRole", v)}
-          placeholder="Enter your target role"
-        />
-        <Input
-          label="Years of experience"
-          value={form.yearsExperience}
-          onChange={(v) => updateField("yearsExperience", v)}
-          placeholder="Enter years of experience"
-        />
-        <Input
-          label="Location"
-          value={form.location}
-          onChange={(v) => updateField("location", v)}
-          placeholder="Enter your location"
-        />
-        <Input
-          label="Phone"
-          value={form.phone}
-          onChange={(v) => updateField("phone", v)}
-          placeholder="Enter your phone number"
-        />
-        <Input
-          label="Email"
-          value={form.email}
-          onChange={(v) => updateField("email", v)}
-          placeholder="Enter your email"
-        />
-
-        <TextField
-          label="Short background / summary notes"
-          value={form.summaryNotes}
-          onChange={(v) => updateField("summaryNotes", v)}
-          placeholder="Write a few lines about your background and strengths..."
-          rows={5}
-        />
-        <TextField
-          label="Work experience"
-          value={form.workExperience}
-          onChange={(v) => updateField("workExperience", v)}
-          placeholder="Write your work experience here..."
-          rows={8}
-        />
-        <TextField
-          label="Education"
-          value={form.education}
-          onChange={(v) => updateField("education", v)}
-          placeholder="Write your education here..."
-          rows={5}
-        />
-        <TextField
-          label="Skills"
-          value={form.skills}
-          onChange={(v) => updateField("skills", v)}
-          placeholder="List your skills here..."
-          rows={4}
-        />
-        <TextField
-          label="Certifications"
-          value={form.certifications}
-          onChange={(v) => updateField("certifications", v)}
-          placeholder="List certifications here..."
-          rows={4}
-        />
-        <TextField
-          label="Languages"
-          value={form.languages}
-          onChange={(v) => updateField("languages", v)}
-          placeholder="e.g. Arabic, English"
-          rows={3}
-        />
-
-        <div style={{ marginTop: 20 }}>
-          <button
-            onClick={handleContinue}
-            disabled={loading}
+        <div
+          style={{
+            padding: 28,
+            borderRadius: 28,
+            border: "1px solid rgba(148,163,184,0.16)",
+            background: "rgba(15,23,42,0.88)",
+            boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
+          }}
+        >
+          <div
             style={{
-              padding: "14px 22px",
-              borderRadius: 12,
-              background: "#60a5fa",
-              color: "#081018",
-              fontWeight: 800,
-              fontSize: 18,
-              border: "none",
-              cursor: "pointer",
-              opacity: loading ? 0.7 : 1,
+              display: "inline-block",
+              marginBottom: 18,
+              padding: "10px 16px",
+              borderRadius: 999,
+              background: "rgba(96,165,250,0.14)",
+              color: "#dbeafe",
+              fontSize: 14,
+              fontWeight: 700,
             }}
           >
-            {loading ? "Saving..." : "Continue to Payment"}
-          </button>
+            Fill details → Pay → Get your CV
+          </div>
+
+          <h1
+            style={{
+              margin: "0 0 14px",
+              fontSize: "clamp(34px, 7vw, 56px)",
+              lineHeight: 1.05,
+              fontWeight: 800,
+            }}
+          >
+            ResumeFix AI
+          </h1>
+
+          <p
+            style={{
+              margin: "0 0 28px",
+              maxWidth: 760,
+              color: "#cbd5e1",
+              fontSize: "clamp(16px, 2vw, 20px)",
+              lineHeight: 1.7,
+            }}
+          >
+            Fill in your details and continue to payment. After payment, your CV
+            order will be ready for processing.
+          </p>
+
+          <form onSubmit={handleSubmit}>
+            <Field
+              label="Full Name"
+              value={form.fullName}
+              onChange={(v) => updateField("fullName", v)}
+              placeholder="Write your full name"
+            />
+
+            <Field
+              label="Job Title"
+              value={form.jobTitle}
+              onChange={(v) => updateField("jobTitle", v)}
+              placeholder="e.g. General Practitioner"
+            />
+
+            <Field
+              label="Email"
+              value={form.email}
+              onChange={(v) => updateField("email", v)}
+              placeholder="Write your email"
+            />
+
+            <Field
+              label="Phone"
+              value={form.phone}
+              onChange={(v) => updateField("phone", v)}
+              placeholder="Write your phone number"
+            />
+
+            <TextAreaField
+              label="Professional Summary"
+              value={form.summary}
+              onChange={(v) => updateField("summary", v)}
+              placeholder="Write a short summary about yourself"
+            />
+
+            <TextAreaField
+              label="Experience"
+              value={form.experience}
+              onChange={(v) => updateField("experience", v)}
+              placeholder="Write your work experience here..."
+            />
+
+            <TextAreaField
+              label="Education"
+              value={form.education}
+              onChange={(v) => updateField("education", v)}
+              placeholder="Write your education here..."
+            />
+
+            <TextAreaField
+              label="Skills"
+              value={form.skills}
+              onChange={(v) => updateField("skills", v)}
+              placeholder="List your skills here..."
+            />
+
+            <TextAreaField
+              label="Languages"
+              value={form.languages}
+              onChange={(v) => updateField("languages", v)}
+              placeholder="e.g. Arabic, English"
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                marginTop: 24,
+                border: "none",
+                borderRadius: 18,
+                padding: "16px 24px",
+                minWidth: 220,
+                fontSize: 18,
+                fontWeight: 800,
+                cursor: loading ? "not-allowed" : "pointer",
+                background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
+                color: "#081018",
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading ? "Saving..." : "Continue to Payment"}
+            </button>
+          </form>
         </div>
       </div>
     </main>
   );
 }
 
-function Input({ label, value, onChange, placeholder }) {
+function Field({ label, value, onChange, placeholder }) {
   return (
-    <label style={{ display: "block", marginBottom: 16 }}>
-      <span style={{ display: "block", marginBottom: 8, fontWeight: 700 }}>
+    <div style={{ marginBottom: 18 }}>
+      <label
+        style={{
+          display: "block",
+          marginBottom: 8,
+          fontSize: 16,
+          fontWeight: 700,
+          color: "#e2e8f0",
+        }}
+      >
         {label}
-      </span>
+      </label>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         style={{
           width: "100%",
-          padding: 12,
-          borderRadius: 12,
-          border: "1px solid #334155",
-          background: "#0f172a",
-          color: "#fff",
+          padding: "16px 18px",
+          borderRadius: 16,
+          border: "1px solid rgba(148,163,184,0.18)",
+          background: "#09111d",
+          color: "#f8fafc",
           fontSize: 16,
+          outline: "none",
+          boxSizing: "border-box",
         }}
       />
-    </label>
+    </div>
   );
 }
 
-function TextField({ label, value, onChange, placeholder, rows = 6 }) {
+function TextAreaField({ label, value, onChange, placeholder }) {
   return (
-    <label style={{ display: "block", marginBottom: 16 }}>
-      <span style={{ display: "block", marginBottom: 8, fontWeight: 700 }}>
+    <div style={{ marginBottom: 18 }}>
+      <label
+        style={{
+          display: "block",
+          marginBottom: 8,
+          fontSize: 16,
+          fontWeight: 700,
+          color: "#e2e8f0",
+        }}
+      >
         {label}
-      </span>
+      </label>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        rows={rows}
+        rows={5}
         style={{
           width: "100%",
-          padding: 12,
-          borderRadius: 12,
-          border: "1px solid #334155",
-          background: "#0f172a",
-          color: "#fff",
+          padding: "16px 18px",
+          borderRadius: 16,
+          border: "1px solid rgba(148,163,184,0.18)",
+          background: "#09111d",
+          color: "#f8fafc",
           fontSize: 16,
+          outline: "none",
+          boxSizing: "border-box",
           resize: "vertical",
         }}
       />
-    </label>
+    </div>
   );
 }

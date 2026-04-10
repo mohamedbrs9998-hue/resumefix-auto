@@ -36,7 +36,7 @@ export default function HomePage() {
             Fill details → Pay → Get your CV
           </div>
 
-          <h1
+          <h1                                                                                                                                                                                     
             style={{
               margin: "0 0 18px",
               fontSize: "clamp(42px, 7vw, 76px)",
@@ -53,7 +53,7 @@ export default function HomePage() {
               margin: 0,
               maxWidth: 760,
               color: "#dbe4f0",
-              fontSize: "clamp(18px, 2vw, 22px)",
+               fontSize: "clamp(18px, 2vw, 22px)",
               lineHeight: 1.7,
             }}
           >
