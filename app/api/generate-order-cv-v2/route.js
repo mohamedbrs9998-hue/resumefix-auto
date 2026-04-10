@@ -24,7 +24,12 @@ function pick(...values) {
 
 function buildPrompt(order) {
   const fullName = pick(order.fullName, order.full_name, "Candidate");
-  const jobTitle = pick(order.jobTitle, order.job_title, order.target_role, "Professional");
+  const jobTitle = pick(
+    order.jobTitle,
+    order.job_title,
+    order.target_role,
+    "Professional"
+  );
   const email = pick(order.email);
   const phone = pick(order.phone);
   const summary = pick(order.summary, order.summary_notes);
