@@ -48,7 +48,11 @@ export async function POST(req) {
 
     if (!response.ok) {
       return NextResponse.json(
-        { ok: false, error: data?.message  data?.error  "Failed to save order", details: data },
+        {
+          ok: false,
+          error: data?.message  data?.error  "Failed to save order",
+          details: data,
+        },
         { status: 500 }
       );
     }
