@@ -1,18 +1,6 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
-const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
-const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
-const OPENAI_API_KEY = process.env["OPENAI_API_KEY"];
-
-function supabaseHeaders() {
-  return {
-    "Content-Type": "application/json",
-    apikey: SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-  };
-}
-
 function pick(...values) {
   for (const value of values) {
     if (value !== undefined && value !== null && String(value).trim() !== "") {
@@ -20,6 +8,14 @@ function pick(...values) {
     }
   }
   return "";
+}
+
+function supabaseHeaders(serviceRoleKey) {
+  return {
+    "Content-Type": "application/json",
+    apikey: serviceRoleKey,
+    Authorization: `Bearer ${serviceRoleKey}`,
+  };
 }
 
 function buildPrompt(order) {
@@ -102,16 +98,24 @@ export async function POST(req) {
       );
     }
 
+    const SUPABASE_URL =
+      process.env.NEXT_PUBLIC_SUPABASE_URL ||
+      process.env.SUPABASE_URL ||
+      "";
+
+    const SUPABASE_SERVICE_ROLE_KEY =
+      process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+    const OPENAI_API_KEY =
+      process.env.OPENAI_API_KEY ||
+      process.env.OPENAI_KEY ||
+      "";
+
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !OPENAI_API_KEY) {
       return NextResponse.json(
         {
           ok: false,
-          error: "Missing environment variables",
-          debug: {
-            hasOpenAIKey: !!OPENAI_API_KEY,
-            hasSupabaseUrl: !!SUPABASE_URL,
-            hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY,
-          },
+          error: `Missing environment variables | hasOpenAIKey=${!!OPENAI_API_KEY} | hasSupabaseUrl=${!!SUPABASE_URL} | hasServiceRoleKey=${!!SUPABASE_SERVICE_ROLE_KEY}`,
         },
         { status: 500 }
       );
@@ -121,7 +125,7 @@ export async function POST(req) {
       `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=*`,
       {
         method: "GET",
-        headers: supabaseHeaders(),
+        headers: supabaseHeaders(SUPABASE_SERVICE_ROLE_KEY),
       }
     );
 
@@ -129,7 +133,7 @@ export async function POST(req) {
 
     if (!orderRes.ok) {
       return NextResponse.json(
-        { ok: false, error: orderData },
+        { ok: false, error: JSON.stringify(orderData) },
         { status: orderRes.status }
       );
     }
@@ -156,7 +160,7 @@ export async function POST(req) {
         {
           role: "system",
           content:
-            "You are an expert executive CV writer. Produce high-quality ATS-friendly CV text.",
+            "You are an expert executive CV writer. Produce a high-quality ATS-friendly professional CV in plain text.",
         },
         {
           role: "user",
@@ -179,7 +183,7 @@ export async function POST(req) {
       {
         method: "PATCH",
         headers: {
-          ...supabaseHeaders(),
+          ...supabaseHeaders(SUPABASE_SERVICE_ROLE_KEY),
           Prefer: "return=representation",
         },
         body: JSON.stringify({
@@ -192,7 +196,7 @@ export async function POST(req) {
 
     if (!updateRes.ok) {
       return NextResponse.json(
-        { ok: false, error: updateData },
+        { ok: false, error: JSON.stringify(updateData) },
         { status: updateRes.status }
       );
     }
