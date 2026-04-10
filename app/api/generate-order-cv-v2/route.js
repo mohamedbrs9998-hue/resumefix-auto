@@ -1,61 +1,89 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_URL = process.env["NEXT_PUBLIC_SUPABASE_URL"];
+const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];
+const OPENAI_API_KEY = process.env["OPENAI_API_KEY"];
 
 function supabaseHeaders() {
   return {
     "Content-Type": "application/json",
     apikey: SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY},
+    Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
   };
 }
 
-async function generateCvText(order) {
-  const prompt = `
+function pick(...values) {
+  for (const value of values) {
+    if (value !== undefined && value !== null && String(value).trim() !== "") {
+      return String(value).trim();
+    }
+  }
+  return "";
+}
+
+function buildPrompt(order) {
+  const fullName = pick(order.fullName, order.full_name, "Candidate");
+  const jobTitle = pick(order.jobTitle, order.job_title, order.target_role, "Professional");
+  const email = pick(order.email);
+  const phone = pick(order.phone);
+  const summary = pick(order.summary, order.summary_notes);
+  const experience = pick(order.experience, order.work_experience);
+  const education = pick(order.education);
+  const skills = pick(order.skills);
+  const languages = pick(order.languages);
+  const yearsExperience = pick(order.years_experience);
+  const location = pick(order.location);
+  const certifications = pick(order.certifications);
+
+  return `
 Write a complete, polished, ATS-friendly professional CV in plain text for this candidate.
 
-Do NOT return JSON.
-Do NOT use markdown code fences.
-Return only the final CV text.
+Rules:
+- Return plain text only.
+- Do not return JSON.
+- Do not use markdown code fences.
+- Make it professional, concise, and recruiter-friendly.
+- Use strong action-oriented wording.
+- If some information is missing, work professionally with what is available and do not invent specific facts.
 
 Candidate details:
-Full name: ${order.full_name || ""}
-Target role: ${order.target_role || ""}
-Years of experience: ${order.years_experience || ""}
-Location: ${order.location || ""}
-Phone: ${order.phone || ""}
-Email: ${order.email || ""}
-Summary notes: ${order.summary_notes || ""}
-Work experience: ${order.work_experience || ""}
-Education: ${order.education || ""}
-Skills: ${order.skills || ""}
-Certifications: ${order.certifications || ""}
-Languages: ${order.languages || ""}
-`;
+Full name: ${fullName}
+Target title: ${jobTitle}
+Email: ${email}
+Phone: ${phone}
+Location: ${location}
+Years of experience: ${yearsExperience}
+Professional summary / notes: ${summary}
+Work experience: ${experience}
+Education: ${education}
+Skills: ${skills}
+Languages: ${languages}
+Certifications: ${certifications}
 
-  const completion = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You are an expert professional CV writer. Return only plain text CV content.",
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-    temperature: 0.4,
-  });
+Output structure:
+${fullName}
+${jobTitle}
 
-  return (completion.choices?.[0]?.message?.content || "").trim();
+CONTACT
+- Email
+- Phone
+- Location
+
+PROFESSIONAL SUMMARY
+
+CORE SKILLS
+
+PROFESSIONAL EXPERIENCE
+
+EDUCATION
+
+CERTIFICATIONS
+(if available)
+
+LANGUAGES
+(if available)
+`.trim();
 }
 
 export async function POST(req) {
@@ -69,17 +97,17 @@ export async function POST(req) {
       );
     }
 
-   if (!SUPABASE_URL  !SUPABASE_SERVICE_ROLE_KEY  !process.env.OPENAI_API_KEY) {
-  return NextResponse.json(
-    {
-      ok: false,
-      error: "Missing environment variables",
-      debug: {
-        hasOpenAIKey: !!process.env.OPENAI_API_KEY,
-        hasSupabaseUrl: !!SUPABASE_URL,
-        hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY,
-      },
-    },
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !OPENAI_API_KEY) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "Missing environment variables",
+          debug: {
+            hasOpenAIKey: !!OPENAI_API_KEY,
+            hasSupabaseUrl: !!SUPABASE_URL,
+            hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY,
+          },
+        },
         { status: 500 }
       );
     }
@@ -87,30 +115,59 @@ export async function POST(req) {
     const orderRes = await fetch(
       `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=*`,
       {
+        method: "GET",
         headers: supabaseHeaders(),
       }
     );
 
     const orderData = await orderRes.json();
 
-    if (!orderRes.ok || !Array.isArray(orderData) || orderData.length === 0) {
+    if (!orderRes.ok) {
       return NextResponse.json(
-        { ok: false, error: "Order not found", details: orderData },
+        { ok: false, error: orderData },
+        { status: orderRes.status }
+      );
+    }
+
+    const order = Array.isArray(orderData) ? orderData[0] : orderData;
+
+    if (!order) {
+      return NextResponse.json(
+        { ok: false, error: "Order not found" },
         { status: 404 }
       );
     }
 
-    const order = orderData[0];
+    const client = new OpenAI({
+      apiKey: OPENAI_API_KEY,
+    });
 
-    if (order.result_json?.cv_text) {
-      return NextResponse.json({
-        ok: true,
-        result: order.result_json,
-      });
+    const prompt = buildPrompt(order);
+
+    const completion = await client.chat.completions.create({
+      model: "gpt-4.1-mini",
+      temperature: 0.4,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are an expert executive CV writer. Produce high-quality ATS-friendly CV text.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
+
+    const cvText = completion.choices?.[0]?.message?.content?.trim();
+
+    if (!cvText) {
+      return NextResponse.json(
+        { ok: false, error: "OpenAI returned empty content" },
+        { status: 500 }
+      );
     }
-
-    const cvText = await generateCvText(order);
-    const resultJson = { cv_text: cvText };
 
     const updateRes = await fetch(
       `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`,
@@ -121,28 +178,32 @@ export async function POST(req) {
           Prefer: "return=representation",
         },
         body: JSON.stringify({
-          result_json: resultJson,
-          status: "completed",
+          result_json: cvText,
         }),
       }
     );
 
-    const updated = await updateRes.json();
+    const updateData = await updateRes.json();
 
     if (!updateRes.ok) {
       return NextResponse.json(
-        { ok: false, error: "Failed to save generated CV", details: updated },
-        { status: 500 }
+        { ok: false, error: updateData },
+        { status: updateRes.status }
       );
     }
 
     return NextResponse.json({
       ok: true,
-      result: resultJson,
+      orderId,
+      cvText,
+      updated: updateData,
     });
   } catch (error) {
     return NextResponse.json(
-      { ok: false, error: error?.message || "Generation failed" },
+      {
+        ok: false,
+        error: error?.message || "Internal server error",
+      },
       { status: 500 }
     );
   }
