@@ -3,15 +3,6 @@ import { NextResponse } from "next/server";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-function headers() {
-  return {
-    "Content-Type": "application/json",
-    apikey: SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY},
-    Prefer: "return=representation",
-  };
-}
-
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -25,7 +16,12 @@ export async function POST(req) {
 
     const response = await fetch(${SUPABASE_URL}/rest/v1/orders, {
       method: "POST",
-      headers: headers(),
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY},
+        Prefer: "return=representation",
+      },
       body: JSON.stringify({
         full_name: body.fullName || "",
         email: body.email || "",
@@ -48,11 +44,7 @@ export async function POST(req) {
 
     if (!response.ok) {
       return NextResponse.json(
-        {
-          ok: false,
-          error: data?.message  data?.error  "Failed to save order",
-          details: data,
-        },
+        { ok: false, error: data?.message  data?.error  "Failed to save order", details: data },
         { status: 500 }
       );
     }
