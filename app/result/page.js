@@ -2,26 +2,29 @@
 
 import { useEffect, useState } from "react";
 
-const ORDER_KEY = "resumefix_order_id_v2";
+const ORDER_KEY = "resumefix_order_id";
 
 export default function ResultPage() {
   const [loading, setLoading] = useState(true);
+  const [cvText, setCvText] = useState("");
   const [error, setError] = useState("");
   const [orderId, setOrderId] = useState("");
-  const [result, setResult] = useState(null);
 
   useEffect(() => {
-    async function loadAndGenerate() {
+    async function run() {
       try {
-        const savedOrderId = localStorage.getItem(ORDER_KEY);
+        const savedOrderId =
+          typeof window !== "undefined"
+            ? localStorage.getItem(ORDER_KEY) || ""
+            : "";
+
+        setOrderId(savedOrderId);
 
         if (!savedOrderId) {
-          setError("No saved order found.");
+          setError("No order ID found.");
           setLoading(false);
           return;
         }
-
-        setOrderId(savedOrderId);
 
         const res = await fetch("/api/generate-order-cv-v2", {
           method: "POST",
@@ -31,23 +34,40 @@ export default function ResultPage() {
           body: JSON.stringify({ orderId: savedOrderId }),
         });
 
-        const data = await res.json();
+        const raw = await res.text();
 
-        if (!res.ok || !data.ok || !data.result) {
-          setError(data.error || "Failed to generate CV.");
+        let data;
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          setError(raw || "Invalid server response");
           setLoading(false);
           return;
         }
 
-        setResult(data.result);
+        if (!res.ok || !data?.ok) {
+          const message =
+            typeof data?.error === "string"
+              ? data.error
+              : JSON.stringify(data?.error || data);
+
+          const debug = data?.debug ? `\n\nDebug: ${JSON.stringify(data.debug)}` : "";
+          setError((message || "Failed to generate CV") + debug);
+          setLoading(false);
+          return;
+        }
+
+        setCvText(data?.cvText || "CV generated successfully, but no text was returned.");
         setLoading(false);
       } catch (err) {
-        setError("Could not generate your CV.");
+        const message =
+          typeof err === "string" ? err : err?.message || JSON.stringify(err);
+        setError(message || "Something went wrong.");
         setLoading(false);
       }
     }
 
-    loadAndGenerate();
+    run();
   }, []);
 
   return (
@@ -56,36 +76,107 @@ export default function ResultPage() {
         minHeight: "100vh",
         background:
           "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
-        color: "#fff",
+        color: "#f8fafc",
         padding: "32px 20px 60px",
       }}
     >
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
-        <h1 style={{ fontSize: 44, fontWeight: 800, marginBottom: 8 }}>
+        <h1
+          style={{
+            margin: "0 0 24px",
+            fontSize: "clamp(34px, 7vw, 64px)",
+            lineHeight: 1.05,
+            fontWeight: 800,
+          }}
+        >
           Your CV Result
         </h1>
 
-        {loading ? (
-          <div style={{ marginTop: 24, padding: 20, borderRadius: 16, background: "#0f172a", border: "1px solid #334155" }}>
-            <p style={{ color: "#cbd5e1", fontSize: 18 }}>
-              Generating your professional CV...
-            </p>
-            <p style={{ color: "#94a3b8", fontSize: 16, marginTop: 8 }}>
-              Order ID: {orderId}
-            </p>
+        {loading && (
+          <div
+            style={{
+              border: "1px solid rgba(148,163,184,0.16)",
+              background: "rgba(15,23,42,0.88)",
+              borderRadius: 24,
+              padding: 24,
+              color: "#cbd5e1",
+              fontSize: 18,
+            }}
+          >
+            Generating your CV...
           </div>
-        ) : error ? (
-          <div style={{ marginTop: 24, padding: 20, borderRadius: 16, background: "#0f172a", border: "1px solid #334155" }}>
-            <p style={{ color: "#fca5a5", fontSize: 18 }}>{error}</p>
-            <p style={{ color: "#94a3b8", fontSize: 16, marginTop: 8 }}>
-              Order ID: {orderId}
-            </p>
-          </div>
-        ) : (
-          <div style={{ marginTop: 24, padding: 20, borderRadius: 16, background: "#0f172a", border: "1px solid #334155" }}>
-            <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.9, color: "#e2e8f0", fontSize: 16 }}>
-              {result.cv_text}
+        )}
+
+        {!loading && error && (
+          <div
+            style={{
+              border: "1px solid rgba(244,114,182,0.22)",
+              background: "rgba(15,23,42,0.88)",
+              borderRadius: 24,
+              padding: 24,
+            }}
+          >
+            <div
+              style={{
+                color: "#fda4af",
+                fontWeight: 800,
+                fontSize: 20,
+                marginBottom: 12,
+              }}
+            >
+              Generation failed
             </div>
+            <div
+              style={{
+                color: "#cbd5e1",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                fontSize: 18,
+                lineHeight: 1.6,
+              }}
+            >
+              {error}
+            </div>
+            {orderId ? (
+              <div style={{ marginTop: 16, color: "#94a3b8", fontSize: 18 }}>
+                Order ID: {orderId}
+              </div>
+            ) : null}
+          </div>
+        )}
+
+        {!loading && !error && (
+          <div
+            style={{
+              border: "1px solid rgba(148,163,184,0.16)",
+              background: "rgba(15,23,42,0.88)",
+              borderRadius: 24,
+              padding: 24,
+            }}
+          >
+            <div
+              style={{
+                color: "#93c5fd",
+                fontWeight: 800,
+                fontSize: 20,
+                marginBottom: 16,
+              }}
+            >
+              CV generated successfully
+            </div>
+            <pre
+              style={{
+                margin: 0,
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+                color: "#e2e8f0",
+                fontSize: 17,
+                lineHeight: 1.7,
+                fontFamily: "inherit",
+              }}
+            >
+              {cvText}
+            </pre>
           </div>
         )}
       </div>
