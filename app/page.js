@@ -82,7 +82,7 @@ export default function HomePage() {
             </Link>
 
             <Link
-              href="/result"
+              href="/result-v2"
               style={{
                 display: "inline-flex",
                 alignItems: "center",
