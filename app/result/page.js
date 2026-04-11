@@ -126,46 +126,35 @@ export default function ResultPage() {
           background:
             "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
           color: "#f8fafc",
-          padding: "24px 16px 60px",
+          padding: "20px 16px 120px",
         }}
       >
         <div style={{ maxWidth: 1000, margin: "0 auto" }}>
           <div
             className="no-print"
             style={{
-              display: "inline-block",
-              padding: "10px 16px",
-              borderRadius: 999,
-              background: "rgba(96,165,250,0.14)",
-              color: "#dbeafe",
-              fontSize: 14,
-              fontWeight: 700,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+              flexWrap: "wrap",
               marginBottom: 14,
             }}
           >
-            Template: {selectedTemplate}
-          </div>
+            <div
+              style={{
+                display: "inline-block",
+                padding: "10px 16px",
+                borderRadius: 999,
+                background: "rgba(96,165,250,0.14)",
+                color: "#dbeafe",
+                fontSize: 14,
+                fontWeight: 700,
+              }}
+            >
+              Template: {selectedTemplate} · Result Page v3
+            </div>
 
-          <h1
-            style={{
-              margin: "0 0 18px",
-              fontSize: "clamp(34px, 7vw, 64px)",
-              lineHeight: 1.05,
-              fontWeight: 800,
-            }}
-          >
-            Your CV Result
-          </h1>
-
-          <div
-            className="no-print"
-            style={{
-              display: "flex",
-              gap: 12,
-              flexWrap: "wrap",
-              marginBottom: 22,
-            }}
-          >
             <button
               onClick={handleDownloadPdf}
               style={{
@@ -175,45 +164,26 @@ export default function ResultPage() {
                 fontSize: 17,
                 fontWeight: 800,
                 cursor: "pointer",
-                background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
-                color: "#081018",
+                background: "linear-gradient(135deg, #facc15 0%, #f59e0b 100%)",
+                color: "#111827",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
               }}
             >
               Download PDF
             </button>
-
-            <button
-              onClick={handleCopy}
-              style={{
-                border: "1px solid rgba(148,163,184,0.22)",
-                borderRadius: 16,
-                padding: "16px 22px",
-                fontSize: 17,
-                fontWeight: 700,
-                cursor: "pointer",
-                background: "rgba(15,23,42,0.88)",
-                color: "#e2e8f0",
-              }}
-            >
-              {copied ? "Copied" : "Copy Text"}
-            </button>
-
-            <button
-              onClick={() => (window.location.href = "/generate")}
-              style={{
-                border: "1px solid rgba(148,163,184,0.22)",
-                borderRadius: 16,
-                padding: "16px 22px",
-                fontSize: 17,
-                fontWeight: 700,
-                cursor: "pointer",
-                background: "rgba(15,23,42,0.88)",
-                color: "#e2e8f0",
-              }}
-            >
-              Back
-            </button>
           </div>
+
+          <h1
+            className="no-print"
+            style={{
+              margin: "0 0 18px",
+              fontSize: "clamp(34px, 7vw, 64px)",
+              lineHeight: 1.05,
+              fontWeight: 800,
+            }}
+          >
+            Your CV Result
+          </h1>
 
           {loading && (
             <div
@@ -315,6 +285,73 @@ export default function ResultPage() {
               </pre>
             </div>
           )}
+        </div>
+
+        <div
+          className="no-print"
+          style={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 9999,
+            padding: "12px 14px calc(12px + env(safe-area-inset-bottom))",
+            background: "rgba(8,16,24,0.96)",
+            borderTop: "1px solid rgba(148,163,184,0.14)",
+            display: "flex",
+            gap: 10,
+          }}
+        >
+          <button
+            onClick={handleDownloadPdf}
+            style={{
+              flex: 1,
+              border: "none",
+              borderRadius: 14,
+              padding: "14px 16px",
+              fontSize: 16,
+              fontWeight: 800,
+              cursor: "pointer",
+              background: "linear-gradient(135deg, #facc15 0%, #f59e0b 100%)",
+              color: "#111827",
+            }}
+          >
+            PDF
+          </button>
+
+          <button
+            onClick={handleCopy}
+            style={{
+              flex: 1,
+              border: "1px solid rgba(148,163,184,0.22)",
+              borderRadius: 14,
+              padding: "14px 16px",
+              fontSize: 16,
+              fontWeight: 700,
+              cursor: "pointer",
+              background: "rgba(15,23,42,0.88)",
+              color: "#e2e8f0",
+            }}
+          >
+            {copied ? "Copied" : "Copy"}
+          </button>
+
+          <button
+            onClick={() => (window.location.href = "/generate")}
+            style={{
+              flex: 1,
+              border: "1px solid rgba(148,163,184,0.22)",
+              borderRadius: 14,
+              padding: "14px 16px",
+              fontSize: 16,
+              fontWeight: 700,
+              cursor: "pointer",
+              background: "rgba(15,23,42,0.88)",
+              color: "#e2e8f0",
+            }}
+          >
+            Back
+          </button>
         </div>
       </main>
     </>
