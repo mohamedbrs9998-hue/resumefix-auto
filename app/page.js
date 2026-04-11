@@ -113,5 +113,3 @@ export default function HomePage() {
     </main>
   );
 }
-
-احصل على Outlook for Android

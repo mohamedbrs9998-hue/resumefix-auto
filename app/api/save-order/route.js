@@ -33,12 +33,12 @@ export async function POST(req) {
       payment_status: "unpaid",
     };
 
-    const response = await fetch(${SUPABASE_URL}/rest/v1/orders, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY},
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         Prefer: "return=representation",
       },
       body: JSON.stringify(payload),
@@ -76,7 +76,7 @@ export async function POST(req) {
     return new Response(
       JSON.stringify({
         ok: false,
-        error: error.message || "Internal server error",
+        error: error?.message || "Internal server error",
       }),
       {
         status: 500,
