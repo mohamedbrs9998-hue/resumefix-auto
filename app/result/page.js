@@ -333,6 +333,59 @@ function getTemplateLabel(template) {
 function getTemplateStyles(template) {
   if (template === "classic") {
     return {
+      pageBackground: "#eef3f8",
+      badgeBg: "#dbeafe",
+      badgeColor: "#1e3a8a",
+      cardBg: "#ffffff",
+      cardBorder: "1px solid #d6dee8",
+      textColor: "#111827",
+      headingColor: "#1d4ed8",
+      subtleColor: "#64748b",
+      divider: "1px solid #d6dee8",
+      fontSize: 17,
+      lineHeight: 1.85,
+      fontFamily: 'Georgia, "Times New Roman", Times, serif',
+    };
+  }
+
+  if (template === "modern") {
+    return {
+      pageBackground:
+        "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
+      badgeBg: "rgba(125,211,252,0.18)",
+      badgeColor: "#bae6fd",
+      cardBg: "linear-gradient(180deg, #111827 0%, #0b1220 100%)",
+      cardBorder: "1px solid rgba(125,211,252,0.22)",
+      textColor: "#e5f3ff",
+      headingColor: "#7dd3fc",
+      subtleColor: "#94a3b8",
+      divider: "1px solid rgba(125,211,252,0.16)",
+      fontSize: 17,
+      lineHeight: 1.9,
+      fontFamily:
+        'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    };
+  }
+
+  return {
+    pageBackground:
+      "radial-gradient(circle at top left, rgba(34,197,94,0.16), transparent 28%), linear-gradient(180deg, #052e16 0%, #0b1220 100%)",
+    badgeBg: "rgba(34,197,94,0.18)",
+    badgeColor: "#bbf7d0",
+    cardBg: "linear-gradient(180deg, #071a12 0%, #0b1220 100%)",
+    cardBorder: "2px solid rgba(34,197,94,0.28)",
+    textColor: "#ecfdf5",
+    headingColor: "#86efac",
+    subtleColor: "#94a3b8",
+    divider: "1px solid rgba(34,197,94,0.18)",
+    fontSize: 17,
+    lineHeight: 1.9,
+    fontFamily:
+      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  };
+}
+  if (template === "classic") {
+    return {
       pageBackground: "#f3f6fb",
       badgeBg: "#dbeafe",
       badgeColor: "#1e3a8a",
