@@ -103,55 +103,50 @@ export default function ResultPage() {
             display: none !important;
           }
 
-          .print-shell {
-            padding: 0 !important;
-            margin: 0 !important;
+          body {
+            background: white !important;
           }
 
           .print-card {
             box-shadow: none !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            border: none !important;
           }
 
           .print-text {
             white-space: pre-wrap !important;
             word-break: break-word !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            color: black !important;
           }
         }
       `}</style>
 
       <main
-        className="print-shell"
         style={{
           minHeight: "100vh",
           background:
             "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
           color: "#f8fafc",
-          padding: "24px 16px 80px",
+          padding: "24px 16px 60px",
         }}
       >
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div className="no-print" style={{ marginBottom: 18 }}>
-            <div
-              style={{
-                display: "inline-block",
-                padding: "10px 16px",
-                borderRadius: 999,
-                background: "rgba(96,165,250,0.14)",
-                color: "#dbeafe",
-                fontSize: 14,
-                fontWeight: 700,
-              }}
-            >
-              Selected Template: {getTemplateLabel(selectedTemplate)}
-            </div>
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+          <div
+            className="no-print"
+            style={{
+              display: "inline-block",
+              padding: "10px 16px",
+              borderRadius: 999,
+              background: "rgba(96,165,250,0.14)",
+              color: "#dbeafe",
+              fontSize: 14,
+              fontWeight: 700,
+              marginBottom: 14,
+            }}
+          >
+            Template: {selectedTemplate}
           </div>
 
           <h1
-            className="no-print"
             style={{
               margin: "0 0 18px",
               fontSize: "clamp(34px, 7vw, 64px)",
@@ -168,20 +163,53 @@ export default function ResultPage() {
               display: "flex",
               gap: 12,
               flexWrap: "wrap",
-              marginBottom: 20,
+              marginBottom: 22,
             }}
           >
-            <button onClick={handleDownloadPdf} style={primaryButtonStyle}>
+            <button
+              onClick={handleDownloadPdf}
+              style={{
+                border: "none",
+                borderRadius: 16,
+                padding: "16px 22px",
+                fontSize: 17,
+                fontWeight: 800,
+                cursor: "pointer",
+                background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
+                color: "#081018",
+              }}
+            >
               Download PDF
             </button>
 
-            <button onClick={handleCopy} style={secondaryButtonStyle}>
+            <button
+              onClick={handleCopy}
+              style={{
+                border: "1px solid rgba(148,163,184,0.22)",
+                borderRadius: 16,
+                padding: "16px 22px",
+                fontSize: 17,
+                fontWeight: 700,
+                cursor: "pointer",
+                background: "rgba(15,23,42,0.88)",
+                color: "#e2e8f0",
+              }}
+            >
               {copied ? "Copied" : "Copy Text"}
             </button>
 
             <button
               onClick={() => (window.location.href = "/generate")}
-              style={secondaryButtonStyle}
+              style={{
+                border: "1px solid rgba(148,163,184,0.22)",
+                borderRadius: 16,
+                padding: "16px 22px",
+                fontSize: 17,
+                fontWeight: 700,
+                cursor: "pointer",
+                background: "rgba(15,23,42,0.88)",
+                color: "#e2e8f0",
+              }}
             >
               Back
             </button>
@@ -243,179 +271,52 @@ export default function ResultPage() {
           )}
 
           {!loading && !error && (
-            <TemplateView
-              template={selectedTemplate}
-              cvText={cvText}
-              orderId={orderId}
-            />
+            <div
+              className="print-card"
+              style={{
+                background: "linear-gradient(180deg, #0b1220 0%, #0f172a 100%)",
+                color: "#e2e8f0",
+                borderRadius: 24,
+                padding: 36,
+                border: "2px solid rgba(34,197,94,0.24)",
+                boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
+              }}
+            >
+              <div
+                className="no-print"
+                style={{
+                  marginBottom: 22,
+                  paddingBottom: 16,
+                  borderBottom: "1px solid rgba(34,197,94,0.14)",
+                }}
+              >
+                <div style={{ color: "#86efac", fontSize: 24, fontWeight: 800 }}>
+                  CV generated successfully
+                </div>
+                <div style={{ color: "#94a3b8", marginTop: 4 }}>
+                  Order ID: {orderId}
+                </div>
+              </div>
+
+              <pre
+                className="print-text"
+                style={{
+                  margin: 0,
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  color: "#e2e8f0",
+                  fontSize: 17,
+                  lineHeight: 1.85,
+                  fontFamily:
+                    'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                }}
+              >
+                {cvText}
+              </pre>
+            </div>
           )}
         </div>
       </main>
     </>
   );
 }
-
-function TemplateView({ template, cvText, orderId }) {
-  if (template === "classic") {
-    return (
-      <div
-        className="print-card"
-        style={{
-          background: "#ffffff",
-          color: "#111827",
-          borderRadius: 20,
-          padding: 36,
-          border: "1px solid #dbe4ee",
-          boxShadow: "0 18px 50px rgba(0,0,0,0.18)",
-        }}
-      >
-        <div
-          className="no-print"
-          style={{
-            marginBottom: 22,
-            paddingBottom: 16,
-            borderBottom: "1px solid #dbe4ee",
-          }}
-        >
-          <div style={{ color: "#1d4ed8", fontSize: 24, fontWeight: 800 }}>
-            Classic Template
-          </div>
-          <div style={{ color: "#64748b", marginTop: 4 }}>Order ID: {orderId}</div>
-        </div>
-
-        <pre
-          className="print-text"
-          style={{
-            margin: 0,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            color: "#111827",
-            fontSize: 17,
-            lineHeight: 1.8,
-            fontFamily: 'Georgia, "Times New Roman", Times, serif',
-          }}
-        >
-          {cvText}
-        </pre>
-      </div>
-    );
-  }
-
-  if (template === "modern") {
-    return (
-      <div
-        className="print-card"
-        style={{
-          background: "linear-gradient(180deg, #111827 0%, #0f172a 100%)",
-          color: "#e5f3ff",
-          borderRadius: 24,
-          padding: 36,
-          border: "1px solid rgba(125,211,252,0.22)",
-          boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
-        }}
-      >
-        <div
-          className="no-print"
-          style={{
-            marginBottom: 22,
-            paddingBottom: 16,
-            borderBottom: "1px solid rgba(125,211,252,0.15)",
-          }}
-        >
-          <div style={{ color: "#7dd3fc", fontSize: 24, fontWeight: 800 }}>
-            Modern Template
-          </div>
-          <div style={{ color: "#94a3b8", marginTop: 4 }}>Order ID: {orderId}</div>
-        </div>
-
-        <pre
-          className="print-text"
-          style={{
-            margin: 0,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            color: "#e5f3ff",
-            fontSize: 17,
-            lineHeight: 1.85,
-            fontFamily:
-              'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          }}
-        >
-          {cvText}
-        </pre>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="print-card"
-      style={{
-        background: "linear-gradient(180deg, #0b1220 0%, #0f172a 100%)",
-        color: "#e2e8f0",
-        borderRadius: 24,
-        padding: 36,
-        border: "2px solid rgba(34,197,94,0.24)",
-        boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
-      }}
-    >
-      <div
-        className="no-print"
-        style={{
-          marginBottom: 22,
-          paddingBottom: 16,
-          borderBottom: "1px solid rgba(34,197,94,0.14)",
-        }}
-      >
-        <div style={{ color: "#86efac", fontSize: 24, fontWeight: 800 }}>
-          Medical Pro Template
-        </div>
-        <div style={{ color: "#94a3b8", marginTop: 4 }}>Order ID: {orderId}</div>
-      </div>
-
-      <pre
-        className="print-text"
-        style={{
-          margin: 0,
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-          color: "#e2e8f0",
-          fontSize: 17,
-          lineHeight: 1.85,
-          fontFamily:
-            'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        }}
-      >
-        {cvText}
-      </pre>
-    </div>
-  );
-}
-
-function getTemplateLabel(template) {
-  if (template === "classic") return "Classic";
-  if (template === "modern") return "Modern";
-  return "Medical Pro";
-}
-
-const primaryButtonStyle = {
-  border: "none",
-  borderRadius: 16,
-  padding: "14px 20px",
-  fontSize: 16,
-  fontWeight: 800,
-  cursor: "pointer",
-  background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
-  color: "#081018",
-};
-
-const secondaryButtonStyle = {
-  border: "1px solid rgba(148,163,184,0.22)",
-  borderRadius: 16,
-  padding: "14px 20px",
-  fontSize: 16,
-  fontWeight: 700,
-  cursor: "pointer",
-  background: "rgba(15,23,42,0.88)",
-  color: "#e2e8f0",
-};
