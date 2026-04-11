@@ -130,37 +130,9 @@ export default function ResultPage() {
           background:
             "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
           color: "#f8fafc",
-          padding: "24px 16px 120px",
+          padding: "24px 16px 80px",
         }}
       >
-        <div
-          className="no-print"
-          style={{
-            position: "fixed",
-            right: 16,
-            bottom: 24,
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          <button onClick={handleDownloadPdf} style={floatingPrimaryButtonStyle}>
-            PDF
-          </button>
-
-          <button onClick={handleCopy} style={floatingSecondaryButtonStyle}>
-            {copied ? "Copied" : "Copy"}
-          </button>
-
-          <button
-            onClick={() => (window.location.href = "/generate")}
-            style={floatingSecondaryButtonStyle}
-          >
-            Back
-          </button>
-        </div>
-
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="no-print" style={{ marginBottom: 18 }}>
             <div
@@ -181,7 +153,7 @@ export default function ResultPage() {
           <h1
             className="no-print"
             style={{
-              margin: "0 0 24px",
+              margin: "0 0 18px",
               fontSize: "clamp(34px, 7vw, 64px)",
               lineHeight: 1.05,
               fontWeight: 800,
@@ -189,6 +161,31 @@ export default function ResultPage() {
           >
             Your CV Result
           </h1>
+
+          <div
+            className="no-print"
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              marginBottom: 20,
+            }}
+          >
+            <button onClick={handleDownloadPdf} style={primaryButtonStyle}>
+              Download PDF
+            </button>
+
+            <button onClick={handleCopy} style={secondaryButtonStyle}>
+              {copied ? "Copied" : "Copy Text"}
+            </button>
+
+            <button
+              onClick={() => (window.location.href = "/generate")}
+              style={secondaryButtonStyle}
+            >
+              Back
+            </button>
+          </div>
 
           {loading && (
             <div
@@ -401,28 +398,24 @@ function getTemplateLabel(template) {
   return "Medical Pro";
 }
 
-const floatingPrimaryButtonStyle = {
+const primaryButtonStyle = {
   border: "none",
-  borderRadius: 999,
-  width: 68,
-  height: 68,
+  borderRadius: 16,
+  padding: "14px 20px",
   fontSize: 16,
   fontWeight: 800,
   cursor: "pointer",
   background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
   color: "#081018",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.28)",
 };
 
-const floatingSecondaryButtonStyle = {
+const secondaryButtonStyle = {
   border: "1px solid rgba(148,163,184,0.22)",
-  borderRadius: 999,
-  width: 68,
-  height: 68,
-  fontSize: 13,
+  borderRadius: 16,
+  padding: "14px 20px",
+  fontSize: 16,
   fontWeight: 700,
   cursor: "pointer",
-  background: "rgba(15,23,42,0.95)",
+  background: "rgba(15,23,42,0.88)",
   color: "#e2e8f0",
-  boxShadow: "0 10px 30px rgba(0,0,0,0.28)",
 };
