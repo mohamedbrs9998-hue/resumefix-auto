@@ -95,6 +95,8 @@ export default function ResultPage() {
     window.print();
   }
 
+  const styles = getTemplateStyles(selectedTemplate);
+
   return (
     <>
       <style>{`
@@ -102,15 +104,17 @@ export default function ResultPage() {
           .no-print {
             display: none !important;
           }
+
           body {
             background: white !important;
           }
+
           .print-card {
             box-shadow: none !important;
-            border: none !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+
           .print-text {
             white-space: pre-wrap !important;
             word-break: break-word !important;
@@ -123,10 +127,9 @@ export default function ResultPage() {
       <main
         style={{
           minHeight: "100vh",
-          background:
-            "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
+          background: styles.pageBackground,
           color: "#f8fafc",
-          padding: "24px 16px 120px",
+          padding: "24px 16px 80px",
         }}
       >
         <div style={{ maxWidth: 1000, margin: "0 auto" }}>
@@ -146,13 +149,13 @@ export default function ResultPage() {
                 display: "inline-block",
                 padding: "10px 16px",
                 borderRadius: 999,
-                background: "rgba(96,165,250,0.14)",
-                color: "#dbeafe",
+                background: styles.badgeBg,
+                color: styles.badgeColor,
                 fontSize: 14,
                 fontWeight: 700,
               }}
             >
-              Template: {selectedTemplate}
+              Template: {getTemplateLabel(selectedTemplate)}
             </div>
 
             <button
@@ -194,50 +197,17 @@ export default function ResultPage() {
               marginBottom: 22,
             }}
           >
-            <button
-              onClick={handleDownloadPdf}
-              style={{
-                border: "none",
-                borderRadius: 16,
-                padding: "14px 20px",
-                fontSize: 16,
-                fontWeight: 800,
-                cursor: "pointer",
-                background: "linear-gradient(135deg, #facc15 0%, #f59e0b 100%)",
-                color: "#111827",
-              }}
-            >
+            <button onClick={handleDownloadPdf} style={primaryButtonStyle}>
               Download PDF
             </button>
 
-            <button
-              onClick={handleCopy}
-              style={{
-                border: "1px solid rgba(148,163,184,0.22)",
-                borderRadius: 16,
-                padding: "14px 20px",
-                fontSize: 16,
-                fontWeight: 700,
-                cursor: "pointer",
-                background: "rgba(15,23,42,0.88)",
-                color: "#e2e8f0",
-              }}
-            >
+            <button onClick={handleCopy} style={secondaryButtonStyle}>
               {copied ? "Copied" : "Copy Text"}
             </button>
 
             <button
               onClick={() => (window.location.href = "/generate")}
-              style={{
-                border: "1px solid rgba(148,163,184,0.22)",
-                borderRadius: 16,
-                padding: "14px 20px",
-                fontSize: 16,
-                fontWeight: 700,
-                cursor: "pointer",
-                background: "rgba(15,23,42,0.88)",
-                color: "#e2e8f0",
-              }}
+              style={secondaryButtonStyle}
             >
               Back
             </button>
@@ -299,11 +269,54 @@ export default function ResultPage() {
           )}
 
           {!loading && !error && (
-            <TemplateView
-              template={selectedTemplate}
-              cvText={cvText}
-              orderId={orderId}
-            />
+            <div
+              className="print-card"
+              style={{
+                background: styles.cardBg,
+                color: styles.textColor,
+                borderRadius: 24,
+                padding: 36,
+                border: styles.cardBorder,
+                boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
+              }}
+            >
+              <div
+                className="no-print"
+                style={{
+                  marginBottom: 22,
+                  paddingBottom: 16,
+                  borderBottom: styles.divider,
+                }}
+              >
+                <div
+                  style={{
+                    color: styles.headingColor,
+                    fontSize: 24,
+                    fontWeight: 800,
+                  }}
+                >
+                  CV generated successfully
+                </div>
+                <div style={{ color: styles.subtleColor, marginTop: 4 }}>
+                  Order ID: {orderId}
+                </div>
+              </div>
+
+              <pre
+                className="print-text"
+                style={{
+                  margin: 0,
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  color: styles.textColor,
+                  fontSize: styles.fontSize,
+                  lineHeight: styles.lineHeight,
+                  fontFamily: styles.fontFamily,
+                }}
+              >
+                {cvText}
+              </pre>
+            </div>
           )}
         </div>
       </main>
@@ -311,139 +324,85 @@ export default function ResultPage() {
   );
 }
 
-function TemplateView({ template, cvText, orderId }) {
-  if (template === "classic") {
-    return (
-      <div
-        className="print-card"
-        style={{
-          background: "#ffffff",
-          color: "#111827",
-          borderRadius: 20,
-          padding: 36,
-          border: "1px solid #dbe4ee",
-          boxShadow: "0 18px 50px rgba(0,0,0,0.18)",
-        }}
-      >
-        <div
-          className="no-print"
-          style={{
-            marginBottom: 22,
-            paddingBottom: 16,
-            borderBottom: "1px solid #dbe4ee",
-          }}
-        >
-          <div style={{ color: "#1d4ed8", fontSize: 24, fontWeight: 800 }}>
-            Classic Template
-          </div>
-          <div style={{ color: "#64748b", marginTop: 4 }}>Order ID: {orderId}</div>
-        </div>
+function getTemplateLabel(template) {
+  if (template === "classic") return "Classic";
+  if (template === "modern") return "Modern";
+  return "Medical Pro";
+}
 
-        <pre
-          className="print-text"
-          style={{
-            margin: 0,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            color: "#111827",
-            fontSize: 17,
-            lineHeight: 1.8,
-            fontFamily: 'Georgia, "Times New Roman", Times, serif',
-          }}
-        >
-          {cvText}
-        </pre>
-      </div>
-    );
+function getTemplateStyles(template) {
+  if (template === "classic") {
+    return {
+      pageBackground: "#f3f6fb",
+      badgeBg: "#dbeafe",
+      badgeColor: "#1e3a8a",
+      cardBg: "#ffffff",
+      cardBorder: "1px solid #dbe4ee",
+      textColor: "#111827",
+      headingColor: "#1d4ed8",
+      subtleColor: "#64748b",
+      divider: "1px solid #dbe4ee",
+      fontSize: 17,
+      lineHeight: 1.8,
+      fontFamily: 'Georgia, "Times New Roman", Times, serif',
+    };
   }
 
   if (template === "modern") {
-    return (
-      <div
-        className="print-card"
-        style={{
-          background: "linear-gradient(180deg, #111827 0%, #0f172a 100%)",
-          color: "#e5f3ff",
-          borderRadius: 24,
-          padding: 36,
-          border: "1px solid rgba(125,211,252,0.22)",
-          boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
-        }}
-      >
-        <div
-          className="no-print"
-          style={{
-            marginBottom: 22,
-            paddingBottom: 16,
-            borderBottom: "1px solid rgba(125,211,252,0.15)",
-          }}
-        >
-          <div style={{ color: "#7dd3fc", fontSize: 24, fontWeight: 800 }}>
-            Modern Template
-          </div>
-          <div style={{ color: "#94a3b8", marginTop: 4 }}>Order ID: {orderId}</div>
-        </div>
-
-        <pre
-          className="print-text"
-          style={{
-            margin: 0,
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            color: "#e5f3ff",
-            fontSize: 17,
-            lineHeight: 1.85,
-            fontFamily:
-              'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          }}
-        >
-          {cvText}
-        </pre>
-      </div>
-    );
+    return {
+      pageBackground:
+        "linear-gradient(180deg, #111827 0%, #0f172a 100%)",
+      badgeBg: "rgba(125,211,252,0.18)",
+      badgeColor: "#bae6fd",
+      cardBg: "linear-gradient(180deg, #111827 0%, #0f172a 100%)",
+      cardBorder: "1px solid rgba(125,211,252,0.22)",
+      textColor: "#e5f3ff",
+      headingColor: "#7dd3fc",
+      subtleColor: "#94a3b8",
+      divider: "1px solid rgba(125,211,252,0.15)",
+      fontSize: 17,
+      lineHeight: 1.85,
+      fontFamily:
+        'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    };
   }
 
-  return (
-    <div
-      className="print-card"
-      style={{
-        background: "linear-gradient(180deg, #0b1220 0%, #0f172a 100%)",
-        color: "#e2e8f0",
-        borderRadius: 24,
-        padding: 36,
-        border: "2px solid rgba(34,197,94,0.24)",
-        boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
-      }}
-    >
-      <div
-        className="no-print"
-        style={{
-          marginBottom: 22,
-          paddingBottom: 16,
-          borderBottom: "1px solid rgba(34,197,94,0.14)",
-        }}
-      >
-        <div style={{ color: "#86efac", fontSize: 24, fontWeight: 800 }}>
-          Medical Pro Template
-        </div>
-        <div style={{ color: "#94a3b8", marginTop: 4 }}>Order ID: {orderId}</div>
-      </div>
-
-      <pre
-        className="print-text"
-        style={{
-          margin: 0,
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-          color: "#e2e8f0",
-          fontSize: 17,
-          lineHeight: 1.85,
-          fontFamily:
-            'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-        }}
-      >
-        {cvText}
-      </pre>
-    </div>
-  );
+  return {
+    pageBackground:
+      "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
+    badgeBg: "rgba(34,197,94,0.18)",
+    badgeColor: "#bbf7d0",
+    cardBg: "linear-gradient(180deg, #0b1220 0%, #0f172a 100%)",
+    cardBorder: "2px solid rgba(34,197,94,0.24)",
+    textColor: "#e2e8f0",
+    headingColor: "#86efac",
+    subtleColor: "#94a3b8",
+    divider: "1px solid rgba(34,197,94,0.14)",
+    fontSize: 17,
+    lineHeight: 1.85,
+    fontFamily:
+      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  };
 }
+
+const primaryButtonStyle = {
+  border: "none",
+  borderRadius: 16,
+  padding: "14px 20px",
+  fontSize: 16,
+  fontWeight: 800,
+  cursor: "pointer",
+  background: "linear-gradient(135deg, #facc15 0%, #f59e0b 100%)",
+  color: "#111827",
+};
+
+const secondaryButtonStyle = {
+  border: "1px solid rgba(148,163,184,0.22)",
+  borderRadius: 16,
+  padding: "14px 20px",
+  fontSize: 16,
+  fontWeight: 700,
+  cursor: "pointer",
+  background: "rgba(15,23,42,0.88)",
+  color: "#e2e8f0",
+};

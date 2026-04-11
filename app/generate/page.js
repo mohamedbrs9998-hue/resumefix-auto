@@ -62,6 +62,7 @@ export default function GeneratePage() {
 
       localStorage.setItem(ORDER_KEY, data.orderId);
       localStorage.setItem(TEMPLATE_KEY, form.template);
+
       window.location.href = "https://payhip.com/order?link=J7W4G";
     } catch (error) {
       const message =
@@ -117,7 +118,7 @@ export default function GeneratePage() {
               fontWeight: 800,
             }}
           >
-            ResumeFix AI
+            Build Your CV
           </h1>
 
           <p
@@ -129,7 +130,7 @@ export default function GeneratePage() {
               lineHeight: 1.7,
             }}
           >
-            Fill in your details, choose your preferred CV template, then
+            Enter your information, select the design template you prefer, then
             continue to payment.
           </p>
 
