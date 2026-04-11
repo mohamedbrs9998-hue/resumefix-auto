@@ -10,6 +10,7 @@ export default function ResultPage() {
   const [error, setError] = useState("");
   const [orderId, setOrderId] = useState("");
   const [copied, setCopied] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState("medical_pro");
 
   useEffect(() => {
     async function run() {
@@ -52,13 +53,20 @@ export default function ResultPage() {
               ? data.error
               : JSON.stringify(data?.error || data);
 
-          const debug = data?.debug ? `\n\nDebug: ${JSON.stringify(data.debug)}` : "";
-          setError((message || "Failed to generate CV") + debug);
+          setError(message || "Failed to generate CV");
           setLoading(false);
           return;
         }
 
         setCvText(data?.cvText || "CV generated successfully, but no text was returned.");
+
+        const returnedTemplate =
+          data?.updated?.[0]?.template ||
+          data?.row?.template ||
+          data?.template ||
+          "medical_pro";
+
+        setSelectedTemplate(returnedTemplate);
         setLoading(false);
       } catch (err) {
         const message =
@@ -85,6 +93,8 @@ export default function ResultPage() {
   function handleDownloadPdf() {
     window.print();
   }
+
+  const templateStyles = getTemplateStyles(selectedTemplate);
 
   return (
     <>
@@ -116,7 +126,7 @@ export default function ResultPage() {
             color: black !important;
             white-space: pre-wrap !important;
             font-size: 14px !important;
-            line-height: 1.6 !important;
+            line-height: 1.7 !important;
           }
         }
       `}</style>
@@ -144,7 +154,7 @@ export default function ResultPage() {
                 fontWeight: 700,
               }}
             >
-              ATS-friendly CV result
+              Selected Template: {getTemplateLabel(selectedTemplate)}
             </div>
           </div>
 
@@ -228,22 +238,16 @@ export default function ResultPage() {
                   marginBottom: 18,
                 }}
               >
-                <button
-                  onClick={handleDownloadPdf}
-                  style={primaryButtonStyle}
-                >
+                <button onClick={handleDownloadPdf} style={primaryButtonStyle}>
                   Download PDF
                 </button>
 
-                <button
-                  onClick={handleCopy}
-                  style={secondaryButtonStyle}
-                >
+                <button onClick={handleCopy} style={secondaryButtonStyle}>
                   {copied ? "Copied" : "Copy Text"}
                 </button>
 
                 <button
-                  onClick={() => window.location.href = "/generate"}
+                  onClick={() => (window.location.href = "/generate")}
                   style={secondaryButtonStyle}
                 >
                   Back to Form
@@ -253,8 +257,7 @@ export default function ResultPage() {
               <div
                 className="print-card"
                 style={{
-                  border: "1px solid rgba(148,163,184,0.16)",
-                  background: "rgba(15,23,42,0.88)",
+                  ...templateStyles.card,
                   borderRadius: 28,
                   padding: 28,
                   boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
@@ -270,13 +273,13 @@ export default function ResultPage() {
                     flexWrap: "wrap",
                     marginBottom: 20,
                     paddingBottom: 18,
-                    borderBottom: "1px solid rgba(148,163,184,0.14)",
+                    borderBottom: templateStyles.divider,
                   }}
                 >
                   <div>
                     <div
                       style={{
-                        color: "#93c5fd",
+                        color: templateStyles.headingColor,
                         fontWeight: 800,
                         fontSize: 21,
                         marginBottom: 4,
@@ -284,7 +287,7 @@ export default function ResultPage() {
                     >
                       CV generated successfully
                     </div>
-                    <div style={{ color: "#94a3b8", fontSize: 16 }}>
+                    <div style={{ color: templateStyles.subtleColor, fontSize: 16 }}>
                       Order ID: {orderId}
                     </div>
                   </div>
@@ -296,11 +299,10 @@ export default function ResultPage() {
                     margin: 0,
                     whiteSpace: "pre-wrap",
                     wordBreak: "break-word",
-                    color: "#e2e8f0",
-                    fontSize: 17,
-                    lineHeight: 1.8,
-                    fontFamily:
-                      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+                    color: templateStyles.textColor,
+                    fontSize: templateStyles.fontSize,
+                    lineHeight: templateStyles.lineHeight,
+                    fontFamily: templateStyles.fontFamily,
                   }}
                 >
                   {cvText}
@@ -312,6 +314,63 @@ export default function ResultPage() {
       </main>
     </>
   );
+}
+
+function getTemplateLabel(template) {
+  if (template === "classic") return "Classic";
+  if (template === "modern") return "Modern";
+  return "Medical Pro";
+}
+
+function getTemplateStyles(template) {
+  if (template === "classic") {
+    return {
+      card: {
+        border: "1px solid rgba(148,163,184,0.16)",
+        background: "#ffffff",
+      },
+      textColor: "#0f172a",
+      headingColor: "#1d4ed8",
+      subtleColor: "#475569",
+      divider: "1px solid rgba(100,116,139,0.18)",
+      fontSize: 17,
+      lineHeight: 1.75,
+      fontFamily:
+        'Georgia, "Times New Roman", Times, serif',
+    };
+  }
+
+  if (template === "modern") {
+    return {
+      card: {
+        border: "1px solid rgba(125,211,252,0.20)",
+        background: "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
+      },
+      textColor: "#e5f3ff",
+      headingColor: "#7dd3fc",
+      subtleColor: "#94a3b8",
+      divider: "1px solid rgba(125,211,252,0.15)",
+      fontSize: 17,
+      lineHeight: 1.8,
+      fontFamily:
+        'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    };
+  }
+
+  return {
+    card: {
+      border: "1px solid rgba(34,197,94,0.18)",
+      background: "linear-gradient(180deg, #0b1220 0%, #0f172a 100%)",
+    },
+    textColor: "#e2e8f0",
+    headingColor: "#86efac",
+    subtleColor: "#94a3b8",
+    divider: "1px solid rgba(34,197,94,0.14)",
+    fontSize: 17,
+    lineHeight: 1.8,
+    fontFamily:
+      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  };
 }
 
 const primaryButtonStyle = {

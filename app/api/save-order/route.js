@@ -28,16 +28,17 @@ export async function POST(req) {
       education: body.education ?? "",
       skills: body.skills ?? "",
       languages: body.languages ?? "",
+      template: body.template ?? "medical_pro",
       status: "pending_payment",
       payment_status: "unpaid",
     };
 
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+    const response = await fetch(${SUPABASE_URL}/rest/v1/orders, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY},
         Prefer: "return=representation",
       },
       body: JSON.stringify(payload),

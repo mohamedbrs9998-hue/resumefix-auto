@@ -15,6 +15,7 @@ export default function GeneratePage() {
     education: "",
     skills: "",
     languages: "",
+    template: "medical_pro",
   });
 
   const [loading, setLoading] = useState(false);
@@ -103,7 +104,7 @@ export default function GeneratePage() {
               fontWeight: 700,
             }}
           >
-            Fill details → Pay → Get your CV
+            Fill details → Choose template → Pay → Get your CV
           </div>
 
           <h1
@@ -126,8 +127,8 @@ export default function GeneratePage() {
               lineHeight: 1.7,
             }}
           >
-            Fill in your details and continue to payment. After payment, your CV
-            order will be ready for processing.
+            Fill in your details, choose your preferred CV template, then
+            continue to payment.
           </p>
 
           <form onSubmit={handleSubmit}>
@@ -193,6 +194,88 @@ export default function GeneratePage() {
               onChange={(v) => updateField("languages", v)}
               placeholder="e.g. Arabic, English"
             />
+
+            <div style={{ marginBottom: 22 }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: 10,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: "#e2e8f0",
+                }}
+              >
+                Choose Your CV Template
+              </label>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                  gap: 14,
+                }}
+              >
+                {[
+                  {
+                    key: "classic",
+                    title: "Classic",
+                    desc: "Clean and professional layout",
+                  },
+                  {
+                    key: "modern",
+                    title: "Modern",
+                    desc: "Stylish and contemporary design",
+                  },
+                  {
+                    key: "medical_pro",
+                    title: "Medical Pro",
+                    desc: "Best for healthcare and medical CVs",
+                  },
+                ].map((template) => {
+                  const selected = form.template === template.key;
+
+                  return (
+                    <button
+                      key={template.key}
+                      type="button"
+                      onClick={() => updateField("template", template.key)}
+                      style={{
+                        textAlign: "left",
+                        padding: "18px",
+                        borderRadius: 18,
+                        border: selected
+                          ? "2px solid #60a5fa"
+                          : "1px solid rgba(148,163,184,0.18)",
+                        background: selected
+                          ? "rgba(96,165,250,0.12)"
+                          : "#09111d",
+                        color: "#f8fafc",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 17,
+                          fontWeight: 800,
+                          marginBottom: 6,
+                        }}
+                      >
+                        {template.title}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 14,
+                          color: "#94a3b8",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {template.desc}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
 
             <button
               type="submit"
