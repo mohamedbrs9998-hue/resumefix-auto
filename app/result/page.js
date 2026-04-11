@@ -99,31 +99,26 @@ export default function ResultPage() {
     <>
       <style>{`
         @media print {
-          body {
-            background: white !important;
-          }
-
           .no-print {
             display: none !important;
           }
 
           .print-shell {
-            background: white !important;
-            color: black !important;
             padding: 0 !important;
             margin: 0 !important;
           }
 
           .print-card {
             box-shadow: none !important;
-            border: none !important;
-            background: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
 
           .print-text {
-            color: black !important;
             white-space: pre-wrap !important;
             word-break: break-word !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
