@@ -95,8 +95,6 @@ export default function ResultPage() {
     window.print();
   }
 
-  const styles = getTemplateStyles(selectedTemplate);
-
   return (
     <>
       <style>{`
@@ -120,7 +118,6 @@ export default function ResultPage() {
             box-shadow: none !important;
             border: none !important;
             background: white !important;
-            padding: 0 !important;
           }
 
           .print-text {
@@ -135,20 +132,21 @@ export default function ResultPage() {
         className="print-shell"
         style={{
           minHeight: "100vh",
-          background: styles.pageBackground,
+          background:
+            "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
           color: "#f8fafc",
           padding: "32px 20px 60px",
         }}
       >
-        <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="no-print" style={{ marginBottom: 18 }}>
             <div
               style={{
                 display: "inline-block",
                 padding: "10px 16px",
                 borderRadius: 999,
-                background: styles.badgeBg,
-                color: styles.badgeColor,
+                background: "rgba(96,165,250,0.14)",
+                color: "#dbeafe",
                 fontSize: 14,
                 fontWeight: 700,
               }}
@@ -171,7 +169,6 @@ export default function ResultPage() {
 
           {loading && (
             <div
-              className="print-card"
               style={{
                 border: "1px solid rgba(148,163,184,0.16)",
                 background: "rgba(15,23,42,0.88)",
@@ -187,7 +184,6 @@ export default function ResultPage() {
 
           {!loading && error && (
             <div
-              className="print-card"
               style={{
                 border: "1px solid rgba(244,114,182,0.22)",
                 background: "rgba(15,23,42,0.88)",
@@ -253,60 +249,11 @@ export default function ResultPage() {
                 </button>
               </div>
 
-              <div
-                className="print-card"
-                style={{
-                  ...styles.card,
-                  borderRadius: 28,
-                  padding: 32,
-                  boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
-                }}
-              >
-                <div
-                  className="no-print"
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: 16,
-                    alignItems: "center",
-                    flexWrap: "wrap",
-                    marginBottom: 20,
-                    paddingBottom: 18,
-                    borderBottom: styles.divider,
-                  }}
-                >
-                  <div>
-                    <div
-                      style={{
-                        color: styles.headingColor,
-                        fontWeight: 800,
-                        fontSize: 21,
-                        marginBottom: 4,
-                      }}
-                    >
-                      CV generated successfully
-                    </div>
-                    <div style={{ color: styles.subtleColor, fontSize: 16 }}>
-                      Order ID: {orderId}
-                    </div>
-                  </div>
-                </div>
-
-                <pre
-                  className="print-text"
-                  style={{
-                    margin: 0,
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    color: styles.textColor,
-                    fontSize: styles.fontSize,
-                    lineHeight: styles.lineHeight,
-                    fontFamily: styles.fontFamily,
-                  }}
-                >
-                  {cvText}
-                </pre>
-              </div>
+              <TemplateView
+                template={selectedTemplate}
+                cvText={cvText}
+                orderId={orderId}
+              />
             </>
           )}
         </div>
@@ -315,71 +262,147 @@ export default function ResultPage() {
   );
 }
 
+function TemplateView({ template, cvText, orderId }) {
+  if (template === "classic") {
+    return (
+      <div
+        className="print-card"
+        style={{
+          background: "#ffffff",
+          color: "#111827",
+          borderRadius: 20,
+          padding: 36,
+          border: "1px solid #dbe4ee",
+          boxShadow: "0 18px 50px rgba(0,0,0,0.18)",
+        }}
+      >
+        <div
+          className="no-print"
+          style={{
+            marginBottom: 22,
+            paddingBottom: 16,
+            borderBottom: "1px solid #dbe4ee",
+          }}
+        >
+          <div style={{ color: "#1d4ed8", fontSize: 24, fontWeight: 800 }}>
+            Classic Template
+          </div>
+          <div style={{ color: "#64748b", marginTop: 4 }}>Order ID: {orderId}</div>
+        </div>
+
+        <pre
+          className="print-text"
+          style={{
+            margin: 0,
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            color: "#111827",
+            fontSize: 17,
+            lineHeight: 1.8,
+            fontFamily: 'Georgia, "Times New Roman", Times, serif',
+          }}
+        >
+          {cvText}
+        </pre>
+      </div>
+    );
+  }
+
+  if (template === "modern") {
+    return (
+      <div
+        className="print-card"
+        style={{
+          background: "linear-gradient(180deg, #111827 0%, #0f172a 100%)",
+          color: "#e5f3ff",
+          borderRadius: 24,
+          padding: 36,
+          border: "1px solid rgba(125,211,252,0.22)",
+          boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
+        }}
+      >
+        <div
+          className="no-print"
+          style={{
+            marginBottom: 22,
+            paddingBottom: 16,
+            borderBottom: "1px solid rgba(125,211,252,0.15)",
+          }}
+        >
+          <div style={{ color: "#7dd3fc", fontSize: 24, fontWeight: 800 }}>
+            Modern Template
+          </div>
+          <div style={{ color: "#94a3b8", marginTop: 4 }}>Order ID: {orderId}</div>
+        </div>
+
+        <pre
+          className="print-text"
+          style={{
+            margin: 0,
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            color: "#e5f3ff",
+            fontSize: 17,
+            lineHeight: 1.85,
+            fontFamily:
+              'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          }}
+        >
+          {cvText}
+        </pre>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="print-card"
+      style={{
+        background: "linear-gradient(180deg, #0b1220 0%, #0f172a 100%)",
+        color: "#e2e8f0",
+        borderRadius: 24,
+        padding: 36,
+        border: "2px solid rgba(34,197,94,0.24)",
+        boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
+      }}
+    >
+      <div
+        className="no-print"
+        style={{
+          marginBottom: 22,
+          paddingBottom: 16,
+          borderBottom: "1px solid rgba(34,197,94,0.14)",
+        }}
+      >
+        <div style={{ color: "#86efac", fontSize: 24, fontWeight: 800 }}>
+          Medical Pro Template
+        </div>
+        <div style={{ color: "#94a3b8", marginTop: 4 }}>Order ID: {orderId}</div>
+      </div>
+
+      <pre
+        className="print-text"
+        style={{
+          margin: 0,
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
+          color: "#e2e8f0",
+          fontSize: 17,
+          lineHeight: 1.85,
+          fontFamily:
+            'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        }}
+      >
+        {cvText}
+      </pre>
+    </div>
+  );
+}
+
 function getTemplateLabel(template) {
   if (template === "classic") return "Classic";
   if (template === "modern") return "Modern";
   return "Medical Pro";
-}
-
-function getTemplateStyles(template) {
-  if (template === "classic") {
-    return {
-      pageBackground: "#f8fafc",
-      badgeBg: "#dbeafe",
-      badgeColor: "#1e3a8a",
-      card: {
-        border: "1px solid #cbd5e1",
-        background: "#ffffff",
-      },
-      textColor: "#111827",
-      headingColor: "#1d4ed8",
-      subtleColor: "#475569",
-      divider: "1px solid #cbd5e1",
-      fontSize: 17,
-      lineHeight: 1.75,
-      fontFamily: 'Georgia, "Times New Roman", Times, serif',
-    };
-  }
-
-  if (template === "modern") {
-    return {
-      pageBackground:
-        "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
-      badgeBg: "rgba(125,211,252,0.18)",
-      badgeColor: "#bae6fd",
-      card: {
-        border: "1px solid rgba(125,211,252,0.22)",
-        background: "linear-gradient(180deg, #111827 0%, #0f172a 100%)",
-      },
-      textColor: "#e5f3ff",
-      headingColor: "#7dd3fc",
-      subtleColor: "#94a3b8",
-      divider: "1px solid rgba(125,211,252,0.15)",
-      fontSize: 17,
-      lineHeight: 1.8,
-      fontFamily:
-        'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    };
-  }
-
-  return {
-    pageBackground:
-      "linear-gradient(180deg, #052e16 0%, #0f172a 100%)",
-    badgeBg: "rgba(34,197,94,0.18)",
-    badgeColor: "#bbf7d0",
-    card: {
-      border: "2px solid rgba(34,197,94,0.28)",
-      background: "linear-gradient(180deg, #0b1220 0%, #0f172a 100%)",
-    },
-    textColor: "#e2e8f0",
-    headingColor: "#86efac",
-    subtleColor: "#94a3b8",
-    divider: "1px solid rgba(34,197,94,0.14)",
-    fontSize: 17,
-    lineHeight: 1.8,
-    fontFamily:
-      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-  };
 }
 
 const primaryButtonStyle = {
