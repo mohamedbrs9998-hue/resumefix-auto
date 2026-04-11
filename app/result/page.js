@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 const ORDER_KEY = "resumefix_order_id";
+const TEMPLATE_KEY = "resumefix_template";
 
 export default function ResultPage() {
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,13 @@ export default function ResultPage() {
             ? localStorage.getItem(ORDER_KEY) || ""
             : "";
 
+        const savedTemplate =
+          typeof window !== "undefined"
+            ? localStorage.getItem(TEMPLATE_KEY) || "medical_pro"
+            : "medical_pro";
+
         setOrderId(savedOrderId);
+        setSelectedTemplate(savedTemplate);
 
         if (!savedOrderId) {
           setError("No order ID found.");
@@ -58,15 +65,9 @@ export default function ResultPage() {
           return;
         }
 
-        setCvText(data?.cvText || "CV generated successfully, but no text was returned.");
-
-        const returnedTemplate =
-          data?.updated?.[0]?.template ||
-          data?.row?.template ||
-          data?.template ||
-          "medical_pro";
-
-        setSelectedTemplate(returnedTemplate);
+        setCvText(
+          data?.cvText || "CV generated successfully, but no text was returned."
+        );
         setLoading(false);
       } catch (err) {
         const message =
@@ -94,7 +95,7 @@ export default function ResultPage() {
     window.print();
   }
 
-  const templateStyles = getTemplateStyles(selectedTemplate);
+  const styles = getTemplateStyles(selectedTemplate);
 
   return (
     <>
@@ -125,8 +126,7 @@ export default function ResultPage() {
           .print-text {
             color: black !important;
             white-space: pre-wrap !important;
-            font-size: 14px !important;
-            line-height: 1.7 !important;
+            word-break: break-word !important;
           }
         }
       `}</style>
@@ -135,8 +135,7 @@ export default function ResultPage() {
         className="print-shell"
         style={{
           minHeight: "100vh",
-          background:
-            "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
+          background: styles.pageBackground,
           color: "#f8fafc",
           padding: "32px 20px 60px",
         }}
@@ -148,8 +147,8 @@ export default function ResultPage() {
                 display: "inline-block",
                 padding: "10px 16px",
                 borderRadius: 999,
-                background: "rgba(96,165,250,0.14)",
-                color: "#dbeafe",
+                background: styles.badgeBg,
+                color: styles.badgeColor,
                 fontSize: 14,
                 fontWeight: 700,
               }}
@@ -257,9 +256,9 @@ export default function ResultPage() {
               <div
                 className="print-card"
                 style={{
-                  ...templateStyles.card,
+                  ...styles.card,
                   borderRadius: 28,
-                  padding: 28,
+                  padding: 32,
                   boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
                 }}
               >
@@ -273,13 +272,13 @@ export default function ResultPage() {
                     flexWrap: "wrap",
                     marginBottom: 20,
                     paddingBottom: 18,
-                    borderBottom: templateStyles.divider,
+                    borderBottom: styles.divider,
                   }}
                 >
                   <div>
                     <div
                       style={{
-                        color: templateStyles.headingColor,
+                        color: styles.headingColor,
                         fontWeight: 800,
                         fontSize: 21,
                         marginBottom: 4,
@@ -287,7 +286,7 @@ export default function ResultPage() {
                     >
                       CV generated successfully
                     </div>
-                    <div style={{ color: templateStyles.subtleColor, fontSize: 16 }}>
+                    <div style={{ color: styles.subtleColor, fontSize: 16 }}>
                       Order ID: {orderId}
                     </div>
                   </div>
@@ -299,10 +298,10 @@ export default function ResultPage() {
                     margin: 0,
                     whiteSpace: "pre-wrap",
                     wordBreak: "break-word",
-                    color: templateStyles.textColor,
-                    fontSize: templateStyles.fontSize,
-                    lineHeight: templateStyles.lineHeight,
-                    fontFamily: templateStyles.fontFamily,
+                    color: styles.textColor,
+                    fontSize: styles.fontSize,
+                    lineHeight: styles.lineHeight,
+                    fontFamily: styles.fontFamily,
                   }}
                 >
                   {cvText}
@@ -325,26 +324,32 @@ function getTemplateLabel(template) {
 function getTemplateStyles(template) {
   if (template === "classic") {
     return {
+      pageBackground: "#f8fafc",
+      badgeBg: "#dbeafe",
+      badgeColor: "#1e3a8a",
       card: {
-        border: "1px solid rgba(148,163,184,0.16)",
+        border: "1px solid #cbd5e1",
         background: "#ffffff",
       },
-      textColor: "#0f172a",
+      textColor: "#111827",
       headingColor: "#1d4ed8",
       subtleColor: "#475569",
-      divider: "1px solid rgba(100,116,139,0.18)",
+      divider: "1px solid #cbd5e1",
       fontSize: 17,
       lineHeight: 1.75,
-      fontFamily:
-        'Georgia, "Times New Roman", Times, serif',
+      fontFamily: 'Georgia, "Times New Roman", Times, serif',
     };
   }
 
   if (template === "modern") {
     return {
+      pageBackground:
+        "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
+      badgeBg: "rgba(125,211,252,0.18)",
+      badgeColor: "#bae6fd",
       card: {
-        border: "1px solid rgba(125,211,252,0.20)",
-        background: "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
+        border: "1px solid rgba(125,211,252,0.22)",
+        background: "linear-gradient(180deg, #111827 0%, #0f172a 100%)",
       },
       textColor: "#e5f3ff",
       headingColor: "#7dd3fc",
@@ -358,8 +363,12 @@ function getTemplateStyles(template) {
   }
 
   return {
+    pageBackground:
+      "linear-gradient(180deg, #052e16 0%, #0f172a 100%)",
+    badgeBg: "rgba(34,197,94,0.18)",
+    badgeColor: "#bbf7d0",
     card: {
-      border: "1px solid rgba(34,197,94,0.18)",
+      border: "2px solid rgba(34,197,94,0.28)",
       background: "linear-gradient(180deg, #0b1220 0%, #0f172a 100%)",
     },
     textColor: "#e2e8f0",
