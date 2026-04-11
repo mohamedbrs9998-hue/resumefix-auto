@@ -130,76 +130,58 @@ export default function ResultPage() {
           background:
             "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
           color: "#f8fafc",
-          padding: "20px 16px 60px",
+          padding: "24px 16px 120px",
         }}
       >
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div
-            className="no-print"
-            style={{
-              position: "sticky",
-              top: 0,
-              zIndex: 20,
-              paddingTop: 8,
-              paddingBottom: 14,
-              background:
-                "linear-gradient(180deg, rgba(8,16,24,0.98) 0%, rgba(8,16,24,0.88) 100%)",
-              backdropFilter: "blur(8px)",
-              marginBottom: 14,
-            }}
+        <div
+          className="no-print"
+          style={{
+            position: "fixed",
+            right: 16,
+            bottom: 24,
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <button onClick={handleDownloadPdf} style={floatingPrimaryButtonStyle}>
+            PDF
+          </button>
+
+          <button onClick={handleCopy} style={floatingSecondaryButtonStyle}>
+            {copied ? "Copied" : "Copy"}
+          </button>
+
+          <button
+            onClick={() => (window.location.href = "/generate")}
+            style={floatingSecondaryButtonStyle}
           >
+            Back
+          </button>
+        </div>
+
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div className="no-print" style={{ marginBottom: 18 }}>
             <div
               style={{
-                display: "flex",
-                gap: 10,
-                flexWrap: "wrap",
-                alignItems: "center",
-                justifyContent: "space-between",
+                display: "inline-block",
+                padding: "10px 16px",
+                borderRadius: 999,
+                background: "rgba(96,165,250,0.14)",
+                color: "#dbeafe",
+                fontSize: 14,
+                fontWeight: 700,
               }}
             >
-              <div
-                style={{
-                  display: "inline-block",
-                  padding: "10px 16px",
-                  borderRadius: 999,
-                  background: "rgba(96,165,250,0.14)",
-                  color: "#dbeafe",
-                  fontSize: 14,
-                  fontWeight: 700,
-                }}
-              >
-                Template: {getTemplateLabel(selectedTemplate)}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: 10,
-                  flexWrap: "wrap",
-                }}
-              >
-                <button onClick={handleDownloadPdf} style={primaryButtonStyle}>
-                  Download PDF
-                </button>
-
-                <button onClick={handleCopy} style={secondaryButtonStyle}>
-                  {copied ? "Copied" : "Copy Text"}
-                </button>
-
-                <button
-                  onClick={() => (window.location.href = "/generate")}
-                  style={secondaryButtonStyle}
-                >
-                  Back
-                </button>
-              </div>
+              Selected Template: {getTemplateLabel(selectedTemplate)}
             </div>
           </div>
 
           <h1
             className="no-print"
             style={{
-              margin: "0 0 20px",
+              margin: "0 0 24px",
               fontSize: "clamp(34px, 7vw, 64px)",
               lineHeight: 1.05,
               fontWeight: 800,
@@ -419,24 +401,28 @@ function getTemplateLabel(template) {
   return "Medical Pro";
 }
 
-const primaryButtonStyle = {
+const floatingPrimaryButtonStyle = {
   border: "none",
-  borderRadius: 16,
-  padding: "14px 20px",
+  borderRadius: 999,
+  width: 68,
+  height: 68,
   fontSize: 16,
   fontWeight: 800,
   cursor: "pointer",
   background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
   color: "#081018",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.28)",
 };
 
-const secondaryButtonStyle = {
+const floatingSecondaryButtonStyle = {
   border: "1px solid rgba(148,163,184,0.22)",
-  borderRadius: 16,
-  padding: "14px 20px",
-  fontSize: 16,
+  borderRadius: 999,
+  width: 68,
+  height: 68,
+  fontSize: 13,
   fontWeight: 700,
   cursor: "pointer",
-  background: "rgba(15,23,42,0.88)",
+  background: "rgba(15,23,42,0.95)",
   color: "#e2e8f0",
+  boxShadow: "0 10px 30px rgba(0,0,0,0.28)",
 };
