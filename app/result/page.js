@@ -130,30 +130,76 @@ export default function ResultPage() {
           background:
             "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
           color: "#f8fafc",
-          padding: "32px 20px 60px",
+          padding: "20px 16px 60px",
         }}
       >
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div className="no-print" style={{ marginBottom: 18 }}>
+          <div
+            className="no-print"
+            style={{
+              position: "sticky",
+              top: 0,
+              zIndex: 20,
+              paddingTop: 8,
+              paddingBottom: 14,
+              background:
+                "linear-gradient(180deg, rgba(8,16,24,0.98) 0%, rgba(8,16,24,0.88) 100%)",
+              backdropFilter: "blur(8px)",
+              marginBottom: 14,
+            }}
+          >
             <div
               style={{
-                display: "inline-block",
-                padding: "10px 16px",
-                borderRadius: 999,
-                background: "rgba(96,165,250,0.14)",
-                color: "#dbeafe",
-                fontSize: 14,
-                fontWeight: 700,
+                display: "flex",
+                gap: 10,
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
               }}
             >
-              Selected Template: {getTemplateLabel(selectedTemplate)}
+              <div
+                style={{
+                  display: "inline-block",
+                  padding: "10px 16px",
+                  borderRadius: 999,
+                  background: "rgba(96,165,250,0.14)",
+                  color: "#dbeafe",
+                  fontSize: 14,
+                  fontWeight: 700,
+                }}
+              >
+                Template: {getTemplateLabel(selectedTemplate)}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  flexWrap: "wrap",
+                }}
+              >
+                <button onClick={handleDownloadPdf} style={primaryButtonStyle}>
+                  Download PDF
+                </button>
+
+                <button onClick={handleCopy} style={secondaryButtonStyle}>
+                  {copied ? "Copied" : "Copy Text"}
+                </button>
+
+                <button
+                  onClick={() => (window.location.href = "/generate")}
+                  style={secondaryButtonStyle}
+                >
+                  Back
+                </button>
+              </div>
             </div>
           </div>
 
           <h1
             className="no-print"
             style={{
-              margin: "0 0 24px",
+              margin: "0 0 20px",
               fontSize: "clamp(34px, 7vw, 64px)",
               lineHeight: 1.05,
               fontWeight: 800,
@@ -218,38 +264,11 @@ export default function ResultPage() {
           )}
 
           {!loading && !error && (
-            <>
-              <div
-                className="no-print"
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  flexWrap: "wrap",
-                  marginBottom: 18,
-                }}
-              >
-                <button onClick={handleDownloadPdf} style={primaryButtonStyle}>
-                  Download PDF
-                </button>
-
-                <button onClick={handleCopy} style={secondaryButtonStyle}>
-                  {copied ? "Copied" : "Copy Text"}
-                </button>
-
-                <button
-                  onClick={() => (window.location.href = "/generate")}
-                  style={secondaryButtonStyle}
-                >
-                  Back to Form
-                </button>
-              </div>
-
-              <TemplateView
-                template={selectedTemplate}
-                cvText={cvText}
-                orderId={orderId}
-              />
-            </>
+            <TemplateView
+              template={selectedTemplate}
+              cvText={cvText}
+              orderId={orderId}
+            />
           )}
         </div>
       </main>
