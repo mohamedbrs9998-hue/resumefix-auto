@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/import-jobs",
+      "path": "/api/daily-import",
       "schedule": "0 5 * * *"
     }
   ]
