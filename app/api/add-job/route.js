@@ -1,3 +1,16 @@
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      ok: true,
+      message: "add-job API is live",
+    }),
+    {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }
+  );
+}
+
 export async function POST(req) {
   try {
     const body = await req.json();
@@ -32,12 +45,12 @@ export async function POST(req) {
       posted_at: body.posted_at ?? new Date().toISOString(),
     };
 
-    const response = await fetch(${SUPABASE_URL}/rest/v1/jobs, {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/jobs`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY},
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
         Prefer: "return=representation",
       },
       body: JSON.stringify(payload),
