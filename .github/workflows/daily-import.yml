@@ -1,0 +1,22 @@
+name: Daily Job Import
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  import_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Import one job daily
+        run: |
+          TODAY=$(date +%F)
+
+          curl -X POST https://resumefix-auto-finalnew.vercel.app/api/import-job \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"source_name\": \"Daily Auto Import\",
+              \"source_url\": \"https://example.com/pediatric-gp-abu-dhabi-$TODAY\",
+              \"rawText\": \"We are hiring a Pediatric General Practitioner in Abu Dhabi for a full-time role in an outpatient medical center. The doctor will assess pediatric patients, diagnose and manage common childhood illnesses, provide follow-up plans, and coordinate referrals when needed. Candidates should have prior GP experience, pediatric background, excellent communication skills, and a valid DOH license.\"
+            }"
