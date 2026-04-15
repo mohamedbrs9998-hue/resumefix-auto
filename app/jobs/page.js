@@ -72,27 +72,27 @@ function JobCard({ job }) {
           marginTop: 12,
         }}
       >
-        {job.source_url ? (
-          <a
-            href={job.source_url}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "12px 16px",
-              borderRadius: 14,
-              textDecoration: "none",
-              fontWeight: 800,
-              background:
-                "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
-              color: "#081018",
-            }}
-          >
-            View Job
-          </a>
-        ) : null}
+{job.source_url && !job.source_url.includes("example.com") ? (
+  <a
+    href={job.source_url}
+    target="_blank"
+    rel="noreferrer"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "12px 16px",
+      borderRadius: 14,
+      textDecoration: "none",
+      fontWeight: 800,
+      background:
+        "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
+      color: "#081018",
+    }}
+  >
+    View Job
+  </a>
+) : null}  
 
         {job.source_name ? (
           <span
