@@ -6,17 +6,42 @@ on:
   workflow_dispatch:
 
 jobs:
-  import_job:
+  import_jobs_from_csv:
     runs-on: ubuntu-latest
-    steps:
-      - name: Import one job daily
-        run: |
-          TODAY=$(date +%F)
 
-          curl -X POST https://resumefix-auto-finalnew.vercel.app/api/import-job \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"source_name\": \"Daily Auto Import\",
-              \"source_url\": \"https://example.com/pediatric-gp-abu-dhabi-$TODAY\",
-              \"rawText\": \"We are hiring a Pediatric General Practitioner in Abu Dhabi for a full-time role in an outpatient medical center. The doctor will assess pediatric patients, diagnose and manage common childhood illnesses, provide follow-up plans, and coordinate referrals when needed. Candidates should have prior GP experience, pediatric background, excellent communication skills, and a valid DOH license.\"
-            }"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Import jobs from CSV
+        run: |
+          python3 - <<'PY'
+          import csv
+          import json
+          import urllib.request
+
+          url = "https://resumefix-auto-finalnew.vercel.app/api/import-job"
+
+          with open("data/jobs.csv", newline="", encoding="utf-8") as f:
+              reader = csv.DictReader(f)
+              for row in reader:
+                  payload = {
+                      "source_name": row.get("source_name", "CSV Import"),
+                      "source_url": row.get("source_url", ""),
+                      "rawText": row.get("rawText", "")
+                  }
+
+                  data = json.dumps(payload).encode("utf-8")
+                  req = urllib.request.Request(
+                      url,
+                      data=data,
+                      headers={"Content-Type": "application/json"},
+                      method="POST"
+                  )
+
+                  try:
+                      with urllib.request.urlopen(req) as resp:
+                          print(resp.read().decode("utf-8"))
+                  except Exception as e:
+                      print("IMPORT FAILED:", e)
+          PY
