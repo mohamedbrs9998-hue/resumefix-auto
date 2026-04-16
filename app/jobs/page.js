@@ -72,27 +72,27 @@ function JobCard({ job }) {
           marginTop: 12,
         }}
       >
-{job.source_url && !job.source_url.includes("example.com") ? (
-  <a
-    href={job.source_url}
-    target="_blank"
-    rel="noreferrer"
-    style={{
-      display: "inline-flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "12px 16px",
-      borderRadius: 14,
-      textDecoration: "none",
-      fontWeight: 800,
-      background:
-        "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
-      color: "#081018",
-    }}
-  >
-    View Job
-  </a>
-) : null}  
+        {job.source_url && !job.source_url.includes("example.com") ? (
+          <a
+            href={job.source_url}
+            target="_blank"
+            rel="noreferrer"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "12px 16px",
+              borderRadius: 14,
+              textDecoration: "none",
+              fontWeight: 800,
+              background:
+                "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
+              color: "#081018",
+            }}
+          >
+            View Job
+          </a>
+        ) : null}
 
         {job.source_name ? (
           <span
@@ -150,35 +150,26 @@ export default function JobsPage() {
   }, []);
 
   const locations = useMemo(() => {
-    return [
-      "all",
-      ...new Set(jobs.map((job) => job.location).filter(Boolean)),
-    ];
+    return ["all", ...new Set(jobs.map((job) => job.location).filter(Boolean))];
   }, [jobs]);
 
   const specialties = useMemo(() => {
-    return [
-      "all",
-      ...new Set(jobs.map((job) => job.specialty).filter(Boolean)),
-    ];
+    return ["all", ...new Set(jobs.map((job) => job.specialty).filter(Boolean))];
   }, [jobs]);
 
   const jobTypes = useMemo(() => {
-    return [
-      "all",
-      ...new Set(jobs.map((job) => job.job_type).filter(Boolean)),
-    ];
+    return ["all", ...new Set(jobs.map((job) => job.job_type).filter(Boolean))];
   }, [jobs]);
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
+      const q = search.trim().toLowerCase();
+
       const matchesSearch =
-        !search.trim() ||
-        (job.title || "").toLowerCase().includes(search.toLowerCase()) ||
-        (job.company_name || "")
-          .toLowerCase()
-          .includes(search.toLowerCase()) ||
-        (job.summary || "").toLowerCase().includes(search.toLowerCase());
+        !q ||
+        (job.title || "").toLowerCase().includes(q) ||
+        (job.company_name || "").toLowerCase().includes(q) ||
+        (job.summary || "").toLowerCase().includes(q);
 
       const matchesLocation =
         locationFilter === "all" || job.location === locationFilter;
@@ -348,15 +339,10 @@ export default function JobsPage() {
                 lineHeight: 1.7,
               }}
             >
-              No jobs match your filters.
+              No jobs found yet.
             </div>
           ) : (
-            <div
-              style={{
-                display: "grid",
-                gap: 18,
-              }}
-            >
+            <div style={{ display: "grid", gap: 18 }}>
               {filteredJobs.map((job) => (
                 <JobCard key={job.id} job={job} />
               ))}
@@ -384,4 +370,7 @@ const inputStyle = {
   border: "1px solid rgba(148,163,184,0.18)",
   background: "#09111d",
   color: "#f8fafc",
-  fontSize
+  fontSize: 16,
+  outline: "none",
+  boxSizing: "border-box",
+};
