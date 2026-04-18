@@ -3,13 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-function isWhatsAppLink(url) {
-  if (!url) return false;
-  return url.includes("wa.me") || url.includes("whatsapp.com");
+function isWhatsAppJob(job) {
+  const url = job?.source_url || "";
+  const source = job?.source_name || "";
+  return (
+    url.includes("wa.me") ||
+    url.includes("whatsapp.com") ||
+    source.toLowerCase().includes("whatsapp")
+  );
 }
 
 function JobCard({ job }) {
-  const whatsapp = isWhatsAppLink(job.source_url);
+  const whatsapp = isWhatsAppJob(job);
 
   return (
     <div
@@ -110,7 +115,7 @@ function JobCard({ job }) {
           marginTop: 14,
         }}
       >
-        {job.source_url && !job.source_url.includes("example.com") ? (
+        {job.source_url ? (
           <a
             href={job.source_url}
             target="_blank"
@@ -149,10 +154,7 @@ export default function JobsPage() {
   useEffect(() => {
     async function loadJobs() {
       try {
-        const res = await fetch("/api/jobs-list", {
-          cache: "no-store",
-        });
-
+        const res = await fetch("/api/jobs-list", { cache: "no-store" });
         const raw = await res.text();
 
         let data;
@@ -445,18 +447,6 @@ const secondaryBtn = {
   border: "1px solid rgba(148,163,184,0.22)",
   background: "rgba(15,23,42,0.66)",
   color: "#f8fafc",
-};
-
-const primarySmallBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  textDecoration: "none",
-  fontWeight: 800,
-  background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
-  color: "#081018",
 };
 
 const whatsappBtn = {
