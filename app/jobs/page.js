@@ -90,7 +90,7 @@ function JobCard({ job }) {
               color: "#081018",
             }}
           >
-            View Job
+            عرض الوظيفة
           </a>
         ) : null}
 
