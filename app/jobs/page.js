@@ -1,15 +1,24 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+
+function isWhatsAppLink(url) {
+  if (!url) return false;
+  return url.includes("wa.me") || url.includes("whatsapp.com");
+}
 
 function JobCard({ job }) {
+  const whatsapp = isWhatsAppLink(job.source_url);
+
   return (
     <div
       style={{
-        borderRadius: 22,
+        borderRadius: 26,
         border: "1px solid rgba(148,163,184,0.14)",
-        background: "rgba(8,16,24,0.55)",
-        padding: 22,
+        background: "rgba(8,16,24,0.6)",
+        padding: 24,
+        boxShadow: "0 18px 50px rgba(0,0,0,0.18)",
       }}
     >
       <div
@@ -17,7 +26,8 @@ function JobCard({ job }) {
           fontSize: 24,
           fontWeight: 800,
           color: "#f8fafc",
-          marginBottom: 8,
+          marginBottom: 10,
+          lineHeight: 1.2,
         }}
       >
         {job.title || "Untitled Job"}
@@ -28,7 +38,7 @@ function JobCard({ job }) {
           display: "flex",
           gap: 10,
           flexWrap: "wrap",
-          marginBottom: 12,
+          marginBottom: 14,
         }}
       >
         {job.location ? <span style={tagStyle}>{job.location}</span> : null}
@@ -42,7 +52,7 @@ function JobCard({ job }) {
             color: "#93c5fd",
             fontWeight: 700,
             marginBottom: 10,
-            fontSize: 16,
+            fontSize: 17,
           }}
         >
           {job.company_name}
@@ -53,13 +63,41 @@ function JobCard({ job }) {
         <div
           style={{
             color: "#dbe4f0",
-            lineHeight: 1.7,
+            lineHeight: 1.8,
             fontSize: 16,
-            marginBottom: 12,
+            marginBottom: 14,
             whiteSpace: "pre-wrap",
           }}
         >
           {job.summary}
+        </div>
+      ) : null}
+
+      {job.requirements ? (
+        <div
+          style={{
+            marginBottom: 14,
+            color: "#cbd5e1",
+            fontSize: 15,
+            lineHeight: 1.8,
+          }}
+        >
+          <strong style={{ color: "#f8fafc" }}>Requirements:</strong>{" "}
+          {job.requirements}
+        </div>
+      ) : null}
+
+      {job.license_required ? (
+        <div
+          style={{
+            marginBottom: 16,
+            color: "#cbd5e1",
+            fontSize: 15,
+            lineHeight: 1.8,
+          }}
+        >
+          <strong style={{ color: "#f8fafc" }}>License:</strong>{" "}
+          {job.license_required}
         </div>
       ) : null}
 
@@ -69,7 +107,7 @@ function JobCard({ job }) {
           gap: 12,
           flexWrap: "wrap",
           alignItems: "center",
-          marginTop: 12,
+          marginTop: 14,
         }}
       >
         {job.source_url && !job.source_url.includes("example.com") ? (
@@ -77,20 +115,9 @@ function JobCard({ job }) {
             href={job.source_url}
             target="_blank"
             rel="noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "12px 16px",
-              borderRadius: 14,
-              textDecoration: "none",
-              fontWeight: 800,
-              background:
-                "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
-              color: "#081018",
-            }}
+            style={whatsapp ? whatsappBtn : primaryBtn}
           >
-            عرض الوظيفة
+            {whatsapp ? "التقديم عبر واتساب" : "عرض الوظيفة"}
           </a>
         ) : null}
 
@@ -126,7 +153,16 @@ export default function JobsPage() {
           cache: "no-store",
         });
 
-        const data = await res.json();
+        const raw = await res.text();
+
+        let data;
+        try {
+          data = raw ? JSON.parse(raw) : {};
+        } catch {
+          setError(raw || "Invalid jobs response");
+          setLoading(false);
+          return;
+        }
 
         if (!res.ok || !data?.ok) {
           setError(
@@ -149,17 +185,20 @@ export default function JobsPage() {
     loadJobs();
   }, []);
 
-  const locations = useMemo(() => {
-    return ["all", ...new Set(jobs.map((job) => job.location).filter(Boolean))];
-  }, [jobs]);
+  const locations = useMemo(
+    () => ["all", ...new Set(jobs.map((job) => job.location).filter(Boolean))],
+    [jobs]
+  );
 
-  const specialties = useMemo(() => {
-    return ["all", ...new Set(jobs.map((job) => job.specialty).filter(Boolean))];
-  }, [jobs]);
+  const specialties = useMemo(
+    () => ["all", ...new Set(jobs.map((job) => job.specialty).filter(Boolean))],
+    [jobs]
+  );
 
-  const jobTypes = useMemo(() => {
-    return ["all", ...new Set(jobs.map((job) => job.job_type).filter(Boolean))];
-  }, [jobs]);
+  const jobTypes = useMemo(
+    () => ["all", ...new Set(jobs.map((job) => job.job_type).filter(Boolean))],
+    [jobs]
+  );
 
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
@@ -196,57 +235,64 @@ export default function JobsPage() {
         padding: "40px 24px 72px",
         color: "#f8fafc",
         background:
-          "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
+          "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #081018 0%, #020817 100%)",
       }}
     >
-      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ maxWidth: 1180, margin: "0 auto" }}>
         <div
           style={{
-            padding: 28,
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 16,
+            flexWrap: "wrap",
+            alignItems: "center",
+            marginBottom: 18,
+          }}
+        >
+          <div>
+            <div style={badgeStyle}>Jobs Board</div>
+            <h1
+              style={{
+                margin: "0 0 10px",
+                fontSize: "clamp(38px, 7vw, 64px)",
+                lineHeight: 1,
+                fontWeight: 800,
+              }}
+            >
+              Available Jobs
+            </h1>
+            <p
+              style={{
+                margin: 0,
+                maxWidth: 760,
+                color: "#dbe4f0",
+                fontSize: "clamp(18px, 2vw, 22px)",
+                lineHeight: 1.7,
+              }}
+            >
+              Browse job opportunities collected and organized inside your site.
+            </p>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <Link href="/" style={secondaryBtn}>
+              Back Home
+            </Link>
+            <Link href="/generate" style={primaryBtn}>
+              Create CV
+            </Link>
+          </div>
+        </div>
+
+        <div
+          style={{
+            padding: 24,
             borderRadius: 28,
             border: "1px solid rgba(148,163,184,0.16)",
             background: "rgba(15,23,42,0.88)",
             boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
           }}
         >
-          <div
-            style={{
-              display: "inline-block",
-              marginBottom: 18,
-              padding: "10px 16px",
-              borderRadius: 999,
-              background: "rgba(96,165,250,0.14)",
-              color: "#dbeafe",
-              fontSize: 14,
-              fontWeight: 700,
-            }}
-          >
-            Jobs Board
-          </div>
-
-          <h1
-            style={{
-              margin: "0 0 18px",
-              fontSize: "clamp(38px, 7vw, 64px)",
-              lineHeight: 1,
-              fontWeight: 800,
-            }}
-          >
-            Available Jobs
-          </h1>
-
-          <p
-            style={{
-              margin: "0 0 28px",
-              maxWidth: 760,
-              color: "#dbe4f0",
-              fontSize: "clamp(18px, 2vw, 22px)",
-              lineHeight: 1.7,
-            }}
-          >
-            Browse job opportunities collected and organized inside your site.
-          </p>
-
           <div
             style={{
               display: "grid",
@@ -300,49 +346,19 @@ export default function JobsPage() {
           </div>
 
           {loading ? (
-            <div
-              style={{
-                borderRadius: 22,
-                border: "1px solid rgba(148,163,184,0.14)",
-                background: "rgba(8,16,24,0.55)",
-                padding: 22,
-                color: "#cbd5e1",
-                fontSize: 18,
-                lineHeight: 1.7,
-              }}
-            >
-              Loading jobs...
-            </div>
+            <InfoBox text="Loading jobs..." />
           ) : error ? (
-            <div
-              style={{
-                borderRadius: 22,
-                border: "1px solid rgba(244,114,182,0.24)",
-                background: "rgba(127,29,29,0.18)",
-                padding: 22,
-                color: "#fecdd3",
-                fontSize: 17,
-                lineHeight: 1.7,
-              }}
-            >
-              Error loading jobs: {error}
-            </div>
+            <InfoBox text={`Error loading jobs: ${error}`} error />
           ) : filteredJobs.length === 0 ? (
+            <InfoBox text="No jobs found yet." />
+          ) : (
             <div
               style={{
-                borderRadius: 22,
-                border: "1px solid rgba(148,163,184,0.14)",
-                background: "rgba(8,16,24,0.55)",
-                padding: 22,
-                color: "#cbd5e1",
-                fontSize: 18,
-                lineHeight: 1.7,
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                gap: 18,
               }}
             >
-              No jobs found yet.
-            </div>
-          ) : (
-            <div style={{ display: "grid", gap: 18 }}>
               {filteredJobs.map((job) => (
                 <JobCard key={job.id} job={job} />
               ))}
@@ -353,6 +369,37 @@ export default function JobsPage() {
     </main>
   );
 }
+
+function InfoBox({ text, error = false }) {
+  return (
+    <div
+      style={{
+        borderRadius: 22,
+        border: error
+          ? "1px solid rgba(244,114,182,0.24)"
+          : "1px solid rgba(148,163,184,0.14)",
+        background: error ? "rgba(127,29,29,0.18)" : "rgba(8,16,24,0.55)",
+        padding: 22,
+        color: error ? "#fecdd3" : "#cbd5e1",
+        fontSize: 18,
+        lineHeight: 1.7,
+      }}
+    >
+      {text}
+    </div>
+  );
+}
+
+const badgeStyle = {
+  display: "inline-block",
+  marginBottom: 14,
+  padding: "10px 16px",
+  borderRadius: 999,
+  background: "rgba(96,165,250,0.14)",
+  color: "#dbeafe",
+  fontSize: 14,
+  fontWeight: 700,
+};
 
 const tagStyle = {
   padding: "8px 12px",
@@ -373,4 +420,53 @@ const inputStyle = {
   fontSize: 16,
   outline: "none",
   boxSizing: "border-box",
+};
+
+const primaryBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "14px 20px",
+  borderRadius: 16,
+  textDecoration: "none",
+  fontWeight: 800,
+  background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
+  color: "#081018",
+};
+
+const secondaryBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "14px 20px",
+  borderRadius: 16,
+  textDecoration: "none",
+  fontWeight: 800,
+  border: "1px solid rgba(148,163,184,0.22)",
+  background: "rgba(15,23,42,0.66)",
+  color: "#f8fafc",
+};
+
+const primarySmallBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "12px 16px",
+  borderRadius: 14,
+  textDecoration: "none",
+  fontWeight: 800,
+  background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
+  color: "#081018",
+};
+
+const whatsappBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "12px 16px",
+  borderRadius: 14,
+  textDecoration: "none",
+  fontWeight: 800,
+  background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+  color: "#ffffff",
 };
