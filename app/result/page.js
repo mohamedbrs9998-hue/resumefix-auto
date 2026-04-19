@@ -1,36 +1,243 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const ORDER_KEY = "resumefix_order_id";
 const TEMPLATE_KEY = "resumefix_template";
+const PHOTO_KEY = "resumefix_photo_dataurl";
+const JOB_ID_KEY = "resumefix_job_id";
+
+const i18n = {
+  ar: {
+    dir: "rtl",
+    pageBadge: "النتيجة النهائية",
+    title: "السيرة الذاتية النهائية",
+    subtitle: "راجع النتيجة، ثم قم بالتحميل أو النسخ أو التقديم على الوظيفة.",
+    langAr: "العربية",
+    langEn: "English",
+    loading: "جارٍ تحميل النتيجة...",
+    noData: "لا توجد بيانات محفوظة لعرض النتيجة.",
+    backHome: "العودة إلى الرئيسية",
+    backGenerate: "العودة إلى إنشاء السيرة",
+    downloadPdf: "تحميل PDF",
+    copyText: "نسخ النص",
+    copied: "تم نسخ النص بنجاح",
+    profile: "الملف الشخصي",
+    work: "الخبرة العملية",
+    education: "التعليم",
+    skills: "المهارات",
+    languages: "اللغات",
+    contact: "التواصل",
+    tailored: "سيرة مخصصة لوظيفة محفوظة",
+    previewOnly: "هذه معاينة نهائية لشكل السيرة قبل التقديم.",
+  },
+  en: {
+    dir: "ltr",
+    pageBadge: "FINAL RESULT",
+    title: "Your Final CV",
+    subtitle: "Review your result, then download, copy, or apply for the job.",
+    langAr: "العربية",
+    langEn: "English",
+    loading: "Loading result...",
+    noData: "No saved data found to display the result.",
+    backHome: "Back Home",
+    backGenerate: "Back to CV Builder",
+    downloadPdf: "Download PDF",
+    copyText: "Copy Text",
+    copied: "Text copied successfully",
+    profile: "Profile",
+    work: "Work History",
+    education: "Education",
+    skills: "Skills",
+    languages: "Languages",
+    contact: "Contact",
+    tailored: "CV tailored for a saved job",
+    previewOnly: "This is your final CV preview before applying.",
+  },
+};
+
+function SectionLabel({ children }) {
+  return (
+    <div
+      style={{
+        fontSize: 14,
+        fontWeight: 800,
+        color: "#2563eb",
+        marginBottom: 8,
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function sidebarTemplate(t, data, photoPreview, hasJob) {
+  const skills = splitList(data.skills, 6);
+  const languages = splitList(data.languages, 5);
+
+  return (
+    <div style={previewWrapper}>
+      <div style={sidebarPreviewLayout}>
+        <div style={sidebarPreviewAside}>
+          <div style={photoFrame}>
+            {photoPreview ? (
+              <img src={photoPreview} alt="profile" style={photoStyle} />
+            ) : (
+              <div style={photoPlaceholder}>Photo</div>
+            )}
+          </div>
+
+          <div style={sidebarName}>{data.fullName || "Your Name"}</div>
+          <div style={sidebarRole}>{data.jobTitle || "Job Title"}</div>
+
+          <div style={{ marginTop: 20 }}>
+            <SectionLabel>{t.contact}</SectionLabel>
+            <div style={smallAsideText}>{data.email || "email@example.com"}</div>
+            <div style={smallAsideText}>{data.phone || "+971..."}</div>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <SectionLabel>{t.skills}</SectionLabel>
+            <div style={{ display: "grid", gap: 6 }}>
+              {(skills.length ? skills : ["Skill 1", "Skill 2", "Skill 3"]).map((item, idx) => (
+                <div key={idx} style={smallAsideText}>• {item}</div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <SectionLabel>{t.languages}</SectionLabel>
+            <div style={{ display: "grid", gap: 6 }}>
+              {(languages.length ? languages : ["Arabic", "English"]).map((item, idx) => (
+                <div key={idx} style={smallAsideText}>• {item}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div style={sidebarPreviewMain}>
+          {hasJob ? <div style={jobHint}>{t.tailored}</div> : null}
+
+          <SectionLabel>{t.profile}</SectionLabel>
+          <div style={previewParagraph}>
+            {data.summary || "Professional summary will appear here."}
+          </div>
+
+          <SectionLabel>{t.work}</SectionLabel>
+          <div style={previewParagraph}>
+            {data.experience || "Work experience will appear here."}
+          </div>
+
+          <SectionLabel>{t.education}</SectionLabel>
+          <div style={previewParagraph}>
+            {data.education || "Education details will appear here."}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function standardTemplate(t, data, photoPreview, hasJob) {
+  const skills = splitList(data.skills, 8);
+
+  return (
+    <div style={previewWrapper}>
+      <div style={standardPreviewCard}>
+        {hasJob ? <div style={jobHint}>{t.tailored}</div> : null}
+
+        <div style={standardTop}>
+          <div style={{ flex: 1 }}>
+            <div style={previewName}>{data.fullName || "Your Name"}</div>
+            <div style={previewRole}>{data.jobTitle || "Job Title"}</div>
+            <div style={previewContactRow}>
+              <span>{data.email || "email@example.com"}</span>
+              <span>{data.phone || "+971..."}</span>
+            </div>
+          </div>
+
+          <div style={standardPhotoWrap}>
+            {photoPreview ? (
+              <img src={photoPreview} alt="profile" style={photoStyle} />
+            ) : (
+              <div style={photoPlaceholder}>Photo</div>
+            )}
+          </div>
+        </div>
+
+        <SectionLabel>{t.profile}</SectionLabel>
+        <div style={previewParagraph}>
+          {data.summary || "Professional summary will appear here."}
+        </div>
+
+        <SectionLabel>{t.work}</SectionLabel>
+        <div style={previewParagraph}>
+          {data.experience || "Work experience will appear here."}
+        </div>
+
+        <SectionLabel>{t.education}</SectionLabel>
+        <div style={previewParagraph}>
+          {data.education || "Education details will appear here."}
+        </div>
+
+        <SectionLabel>{t.skills}</SectionLabel>
+        <div style={chipRow}>
+          {(skills.length ? skills : ["Communication", "Leadership", "Planning"]).map((item, idx) => (
+            <span key={idx} style={skillChip}>{item}</span>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 18 }}>
+          <SectionLabel>{t.languages}</SectionLabel>
+          <div style={previewParagraph}>
+            {data.languages || "Arabic, English"}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function splitList(value, limit = 6) {
+  return String(value || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, limit);
+}
 
 export default function ResultPage() {
+  const [lang, setLang] = useState("ar");
+  const t = i18n[lang];
+
   const [loading, setLoading] = useState(true);
-  const [cvText, setCvText] = useState("");
-  const [error, setError] = useState("");
-  const [orderId, setOrderId] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState("medical_pro");
+  const [data, setData] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState("");
+  const [template, setTemplate] = useState("medical_pro");
+  const [hasJob, setHasJob] = useState(false);
+  const [copyMsg, setCopyMsg] = useState("");
 
   useEffect(() => {
-    async function run() {
+    const savedLang = localStorage.getItem("site_lang");
+    if (savedLang === "ar" || savedLang === "en") {
+      setLang(savedLang);
+    }
+
+    const savedPhoto = localStorage.getItem(PHOTO_KEY);
+    if (savedPhoto) setPhotoPreview(savedPhoto);
+
+    const savedTemplate = localStorage.getItem(TEMPLATE_KEY);
+    if (savedTemplate) setTemplate(savedTemplate);
+
+    const jobId = localStorage.getItem(JOB_ID_KEY);
+    if (jobId) setHasJob(true);
+
+    async function loadResult() {
       try {
-        const savedOrderId =
-          typeof window !== "undefined"
-            ? localStorage.getItem(ORDER_KEY) || ""
-            : "";
-
-        const savedTemplate =
-          typeof window !== "undefined"
-            ? localStorage.getItem(TEMPLATE_KEY) || "medical_pro"
-            : "medical_pro";
-
-        setOrderId(savedOrderId);
-        setSelectedTemplate(savedTemplate);
-
-        if (!savedOrderId) {
-          setError("No order ID found.");
+        const orderId = localStorage.getItem(ORDER_KEY);
+        if (!orderId) {
           setLoading(false);
           return;
         }
@@ -40,368 +247,483 @@ export default function ResultPage() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ orderId: savedOrderId }),
+          body: JSON.stringify({ orderId }),
         });
 
         const raw = await res.text();
 
-        let data;
+        let parsed;
         try {
-          data = raw ? JSON.parse(raw) : {};
+          parsed = raw ? JSON.parse(raw) : {};
         } catch {
-          setError(raw || "Invalid server response");
           setLoading(false);
           return;
         }
 
-        if (!res.ok || !data?.ok) {
-          const message =
-            typeof data?.error === "string"
-              ? data.error
-              : JSON.stringify(data?.error || data);
+        const cvData =
+          parsed?.cv ||
+          parsed?.data ||
+          parsed?.result ||
+          parsed;
 
-          setError(message || "Failed to generate CV");
-          setLoading(false);
-          return;
-        }
+        setData({
+          fullName: cvData?.fullName || cvData?.name || "",
+          jobTitle: cvData?.jobTitle || "",
+          email: cvData?.email || "",
+          phone: cvData?.phone || "",
+          summary: cvData?.summary || "",
+          experience: cvData?.experience || "",
+          education: cvData?.education || "",
+          skills: cvData?.skills || "",
+          languages: cvData?.languages || "",
+        });
 
-        setCvText(
-          data?.cvText || "CV generated successfully, but no text was returned."
-        );
         setLoading(false);
-      } catch (err) {
-        const message =
-          typeof err === "string" ? err : err?.message || JSON.stringify(err);
-        setError(message || "Something went wrong.");
+      } catch {
         setLoading(false);
       }
     }
 
-    run();
+    loadResult();
   }, []);
 
-  async function handleCopy() {
-    if (!cvText) return;
-    try {
-      await navigator.clipboard.writeText(cvText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      alert("Could not copy the CV text.");
-    }
+  function changeLang(next) {
+    setLang(next);
+    localStorage.setItem("site_lang", next);
   }
 
-  function handleDownloadPdf() {
+  async function copyText() {
+    if (!data) return;
+
+    const text = `
+${data.fullName || ""}
+${data.jobTitle || ""}
+
+${t.profile}
+${data.summary || ""}
+
+${t.work}
+${data.experience || ""}
+
+${t.education}
+${data.education || ""}
+
+${t.skills}
+${data.skills || ""}
+
+${t.languages}
+${data.languages || ""}
+
+${t.contact}
+${data.email || ""}
+${data.phone || ""}
+    `.trim();
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopyMsg(t.copied);
+      setTimeout(() => setCopyMsg(""), 2000);
+    } catch {}
+  }
+
+  function downloadPdf() {
     window.print();
   }
 
-  const styles = getTemplateStyles(selectedTemplate);
+  const preview =
+    template === "sidebar_pro"
+      ? sidebarTemplate(t, data || {}, photoPreview, hasJob)
+      : standardTemplate(t, data || {}, photoPreview, hasJob);
 
   return (
-    <>
-      <style>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
+    <main
+      dir={t.dir}
+      style={{
+        minHeight: "100vh",
+        background:
+          "radial-gradient(circle at top left, rgba(96,165,250,0.12), transparent 20%), linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
+        color: "#0f172a",
+        padding: "36px 20px 70px",
+      }}
+    >
+      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <div style={badge}>{t.pageBadge}</div>
 
-          body {
-            background: white !important;
-          }
-
-          .print-card {
-            box-shadow: none !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-
-          .print-text {
-            white-space: pre-wrap !important;
-            word-break: break-word !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-        }
-      `}</style>
-
-      <main
-        style={{
-          minHeight: "100vh",
-          background: styles.pageBackground,
-          color: "#f8fafc",
-          padding: "24px 16px 80px",
-        }}
-      >
-        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-          <div
-            className="no-print"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: 12,
-              flexWrap: "wrap",
-              marginBottom: 14,
-            }}
-          >
-            <div
-              style={{
-                display: "inline-block",
-                padding: "10px 16px",
-                borderRadius: 999,
-                background: styles.badgeBg,
-                color: styles.badgeColor,
-                fontSize: 14,
-                fontWeight: 700,
-              }}
-            >
-              Template: {getTemplateLabel(selectedTemplate)}
-            </div>
-
+          <div style={{ display: "flex", gap: 8 }}>
             <button
-              onClick={handleDownloadPdf}
-              style={{
-                border: "none",
-                borderRadius: 16,
-                padding: "16px 22px",
-                fontSize: 17,
-                fontWeight: 800,
-                cursor: "pointer",
-                background: "linear-gradient(135deg, #facc15 0%, #f59e0b 100%)",
-                color: "#111827",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
-              }}
+              type="button"
+              onClick={() => changeLang("ar")}
+              style={lang === "ar" ? langActiveBtn : langBtn}
             >
-              Download PDF
+              {t.langAr}
+            </button>
+            <button
+              type="button"
+              onClick={() => changeLang("en")}
+              style={lang === "en" ? langActiveBtn : langBtn}
+            >
+              {t.langEn}
             </button>
           </div>
+        </div>
 
+        <div
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e5e7eb",
+            borderRadius: 32,
+            padding: 28,
+            boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+            marginBottom: 22,
+          }}
+        >
           <h1
-            className="no-print"
             style={{
-              margin: "0 0 18px",
-              fontSize: "clamp(34px, 7vw, 64px)",
+              margin: "0 0 12px",
+              fontSize: "clamp(34px, 6vw, 52px)",
               lineHeight: 1.05,
-              fontWeight: 800,
+              fontWeight: 900,
+              color: "#0f172a",
             }}
           >
-            Your CV Result
+            {t.title}
           </h1>
 
-          <div
-            className="no-print"
+          <p
             style={{
-              display: "flex",
-              gap: 12,
-              flexWrap: "wrap",
-              marginBottom: 22,
+              margin: 0,
+              color: "#475569",
+              fontSize: 17,
+              lineHeight: 1.9,
             }}
           >
-            <button onClick={handleDownloadPdf} style={primaryButtonStyle}>
-              Download PDF
-            </button>
+            {t.subtitle}
+          </p>
+        </div>
 
-            <button onClick={handleCopy} style={secondaryButtonStyle}>
-              {copied ? "Copied" : "Copy Text"}
-            </button>
-
-            <button
-              onClick={() => (window.location.href = "/generate")}
-              style={secondaryButtonStyle}
-            >
-              Back
-            </button>
+        {loading ? (
+          <div style={panel}>
+            <div style={infoText}>{t.loading}</div>
           </div>
-
-          {loading && (
-            <div
-              style={{
-                border: "1px solid rgba(148,163,184,0.16)",
-                background: "rgba(15,23,42,0.88)",
-                borderRadius: 24,
-                padding: 24,
-                color: "#cbd5e1",
-                fontSize: 18,
-              }}
-            >
-              Generating your CV...
+        ) : !data ? (
+          <div style={panel}>
+            <div style={infoText}>{t.noData}</div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
+              <a href="/generate" style={primaryBtn}>{t.backGenerate}</a>
+              <a href="/" style={secondaryBtn}>{t.backHome}</a>
             </div>
-          )}
-
-          {!loading && error && (
+          </div>
+        ) : (
+          <>
             <div
               style={{
-                border: "1px solid rgba(244,114,182,0.22)",
-                background: "rgba(15,23,42,0.88)",
-                borderRadius: 24,
-                padding: 24,
+                background: "#ffffff",
+                border: "1px solid #e5e7eb",
+                borderRadius: 32,
+                padding: 22,
+                boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+                marginBottom: 22,
               }}
             >
-              <div
-                style={{
-                  color: "#fda4af",
-                  fontWeight: 800,
-                  fontSize: 22,
-                  marginBottom: 12,
-                }}
-              >
-                Generation failed
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <button type="button" onClick={downloadPdf} style={primaryButton}>
+                  {t.downloadPdf}
+                </button>
+                <button type="button" onClick={copyText} style={secondaryButton}>
+                  {t.copyText}
+                </button>
+                <a href="/generate" style={secondaryBtn}>
+                  {t.backGenerate}
+                </a>
+                <a href="/" style={secondaryBtn}>
+                  {t.backHome}
+                </a>
               </div>
 
-              <div
-                style={{
-                  color: "#cbd5e1",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  fontSize: 18,
-                  lineHeight: 1.7,
-                }}
-              >
-                {error}
-              </div>
-
-              {orderId ? (
-                <div style={{ marginTop: 16, color: "#94a3b8", fontSize: 17 }}>
-                  Order ID: {orderId}
+              {copyMsg ? (
+                <div style={{ marginTop: 14, color: "#2563eb", fontWeight: 700 }}>
+                  {copyMsg}
                 </div>
               ) : null}
             </div>
-          )}
 
-          {!loading && !error && (
             <div
-              className="print-card"
               style={{
-                background: styles.cardBg,
-                color: styles.textColor,
-                borderRadius: 24,
-                padding: 36,
-                border: styles.cardBorder,
-                boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
+                background: "#ffffff",
+                border: "1px solid #e5e7eb",
+                borderRadius: 32,
+                padding: 22,
+                boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
               }}
             >
-              <div
-                className="no-print"
-                style={{
-                  marginBottom: 22,
-                  paddingBottom: 16,
-                  borderBottom: styles.divider,
-                }}
-              >
-                <div
-                  style={{
-                    color: styles.headingColor,
-                    fontSize: 24,
-                    fontWeight: 800,
-                  }}
-                >
-                  CV generated successfully
-                </div>
-                <div style={{ color: styles.subtleColor, marginTop: 4 }}>
-                  Order ID: {orderId}
-                </div>
+              <div style={{ marginBottom: 14, color: "#64748b", fontSize: 14 }}>
+                {t.previewOnly}
               </div>
-
-              <pre
-                className="print-text"
-                style={{
-                  margin: 0,
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  color: styles.textColor,
-                  fontSize: styles.fontSize,
-                  lineHeight: styles.lineHeight,
-                  fontFamily: styles.fontFamily,
-                }}
-              >
-                {cvText}
-              </pre>
+              {preview}
             </div>
-          )}
-        </div>
-      </main>
-    </>
+          </>
+        )}
+      </div>
+    </main>
   );
 }
 
-function getTemplateLabel(template) {
-  if (template === "classic") return "Classic";
-  if (template === "modern") return "Modern";
-  return "Medical Pro";
-}
+const panel = {
+  background: "#ffffff",
+  border: "1px solid #e5e7eb",
+  borderRadius: 32,
+  padding: 28,
+  boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+};
 
-function getTemplateStyles(template) {
-  if (template === "classic") {
-    return {
-      pageBackground: "#eef3f8",
-      badgeBg: "#dbeafe",
-      badgeColor: "#1e3a8a",
-      cardBg: "#ffffff",
-      cardBorder: "1px solid #d6dee8",
-      textColor: "#111827",
-      headingColor: "#1d4ed8",
-      subtleColor: "#64748b",
-      divider: "1px solid #d6dee8",
-      fontSize: 17,
-      lineHeight: 1.85,
-      fontFamily: 'Georgia, "Times New Roman", Times, serif',
-    };
-  }
+const infoText = {
+  color: "#475569",
+  fontSize: 18,
+  lineHeight: 1.8,
+};
 
-  if (template === "modern") {
-    return {
-      pageBackground: "linear-gradient(180deg, #0f172a 0%, #111827 100%)",
-      badgeBg: "rgba(125,211,252,0.18)",
-      badgeColor: "#bae6fd",
-      cardBg: "linear-gradient(180deg, #111827 0%, #0b1220 100%)",
-      cardBorder: "1px solid rgba(125,211,252,0.22)",
-      textColor: "#e5f3ff",
-      headingColor: "#7dd3fc",
-      subtleColor: "#94a3b8",
-      divider: "1px solid rgba(125,211,252,0.16)",
-      fontSize: 17,
-      lineHeight: 1.9,
-      fontFamily:
-        'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    };
-  }
+const badge = {
+  display: "inline-block",
+  padding: "10px 16px",
+  borderRadius: 999,
+  background: "#eff6ff",
+  color: "#2563eb",
+  fontSize: 14,
+  fontWeight: 800,
+};
 
-  return {
-    pageBackground:
-      "radial-gradient(circle at top left, rgba(34,197,94,0.16), transparent 28%), linear-gradient(180deg, #052e16 0%, #0b1220 100%)",
-    badgeBg: "rgba(34,197,94,0.18)",
-    badgeColor: "#bbf7d0",
-    cardBg: "linear-gradient(180deg, #071a12 0%, #0b1220 100%)",
-    cardBorder: "2px solid rgba(34,197,94,0.28)",
-    textColor: "#ecfdf5",
-    headingColor: "#86efac",
-    subtleColor: "#94a3b8",
-    divider: "1px solid rgba(34,197,94,0.18)",
-    fontSize: 17,
-    lineHeight: 1.9,
-    fontFamily:
-      'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-  };
-}
-
-const primaryButtonStyle = {
+const primaryButton = {
   border: "none",
-  borderRadius: 16,
-  padding: "14px 20px",
-  fontSize: 16,
+  borderRadius: 18,
+  padding: "16px 24px",
+  minWidth: 180,
+  fontSize: 18,
+  fontWeight: 900,
+  cursor: "pointer",
+  background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
+  color: "#ffffff",
+  boxShadow: "0 12px 28px rgba(37,99,235,0.20)",
+};
+
+const secondaryButton = {
+  border: "1px solid #dbeafe",
+  background: "#ffffff",
+  color: "#0f172a",
+  padding: "16px 24px",
+  borderRadius: 18,
   fontWeight: 800,
   cursor: "pointer",
-  background: "linear-gradient(135deg, #facc15 0%, #f59e0b 100%)",
-  color: "#111827",
+  fontSize: 17,
 };
 
-const secondaryButtonStyle = {
-  border: "1px solid rgba(148,163,184,0.22)",
-  borderRadius: 16,
-  padding: "14px 20px",
-  fontSize: 16,
+const secondaryBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minWidth: 180,
+  padding: "16px 24px",
+  borderRadius: 18,
+  textDecoration: "none",
+  fontWeight: 800,
+  fontSize: 17,
+  border: "1px solid #dbeafe",
+  background: "#ffffff",
+  color: "#0f172a",
+};
+
+const primaryBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minWidth: 220,
+  padding: "16px 24px",
+  borderRadius: 18,
+  textDecoration: "none",
+  fontWeight: 900,
+  fontSize: 17,
+  background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
+  color: "#ffffff",
+};
+
+const langBtn = {
+  border: "1px solid #dbeafe",
+  background: "#ffffff",
+  color: "#0f172a",
+  padding: "10px 14px",
+  borderRadius: 12,
   fontWeight: 700,
   cursor: "pointer",
-  background: "rgba(15,23,42,0.88)",
-  color: "#e2e8f0",
 };
+
+const langActiveBtn = {
+  border: "1px solid #60a5fa",
+  background: "#eff6ff",
+  color: "#2563eb",
+  padding: "10px 14px",
+  borderRadius: 12,
+  fontWeight: 800,
+  cursor: "pointer",
+};
+
+const previewWrapper = {
+  borderRadius: 24,
+  overflow: "hidden",
+  background: "#f8fbff",
+  border: "1px solid #dbeafe",
+};
+
+const standardPreviewCard = {
+  padding: 18,
+  background: "#ffffff",
+};
+
+const standardTop = {
+  display: "flex",
+  gap: 16,
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+  marginBottom: 16,
+};
+
+const standardPhotoWrap = {
+  width: 96,
+  height: 96,
+  borderRadius: 20,
+  overflow: "hidden",
+  border: "1px solid #dbeafe",
+  flexShrink: 0,
+  background: "#eff6ff",
+};
+
+const sidebarPreviewLayout = {
+  display: "grid",
+  gridTemplateColumns: "240px 1fr",
+  minHeight: 560,
+};
+
+const sidebarPreviewAside = {
+  background: "linear-gradient(180deg, #1e3a8a 0%, #2563eb 100%)",
+  color: "#ffffff",
+  padding: 22,
+};
+
+const sidebarPreviewMain = {
+  background: "#ffffff",
+  padding: 22,
+};
+
+const photoFrame = {
+  width: 140,
+  height: 140,
+  borderRadius: 24,
+  overflow: "hidden",
+  border: "2px solid rgba(255,255,255,0.25)",
+  background: "rgba(255,255,255,0.12)",
+  marginBottom: 18,
+};
+
+const photoStyle = {
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+};
+
+const photoPlaceholder = {
+  width: "100%",
+  height: "100%",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "#64748b",
+  fontWeight: 700,
+  background: "#eff6ff",
+};
+
+const previewName = {
+  fontSize: 28,
+  fontWeight: 900,
+  color: "#0f172a",
+  lineHeight: 1.1,
+  marginBottom: 6,
+};
+
+const sidebarName = {
+  fontSize: 30,
+  fontWeight: 900,
+  color: "#ffffff",
+  lineHeight: 1.1,
+  marginBottom: 6,
+};
+
+const previewRole = {
+  fontSize: 16,
+  color: "#2563eb",
+  fontWeight: 700,
+  marginBottom: 10,
+};
+
+const sidebarRole = {
+  fontSize: 16,
+  color: "#dbeafe",
+  fontWeight: 700,
+  marginBottom: 10,
+};
+
+const previewContactRow = {
+  display: "flex",
+  gap: 12,
+  flexWrap: "wrap",
+  color: "#64748b",
+  fontSize: 14,
+};
+
+const previewParagraph = {
+  color: "#475569",
+  lineHeight: 1.8,
+  fontSize: 15,
+  marginBottom: 16,
+  whiteSpace: "pre-wrap",
+};
+
+const chipRow = {
+  display: "flex",
+  gap: 8,
+  flexWrap: "wrap",
+};
+
+const skillChip = {
+  padding: "8px 12px",
+  borderRadius: 999,
+  background: "#eff6ff",
+  color: "#2563eb",
+  fontSize: 13,
+  fontWeight: 700,
+};
+
+const smallAsideText = {
+  color: "rgba(255,255,255,0.92)",
+  fontSize: 14,
+  lineHeight: 1.7,
+};
+
+const jobHint = {
+  display: "inline-block",
+  marginBottom: 12,
+  padding: "8px 12px",
+  borderRadius: 999,
+  background: "#eff6ff",
+  color: "#2563eb",
+  fontSize: 12,
+  fontWeight: 800,
+};
+
