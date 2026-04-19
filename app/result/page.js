@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 const ORDER_KEY = "resumefix_order_id";
 const TEMPLATE_KEY = "resumefix_template";
@@ -10,7 +10,7 @@ const JOB_ID_KEY = "resumefix_job_id";
 const i18n = {
   ar: {
     dir: "rtl",
-    pageBadge: "النتيجة النهائية",
+    badge: "النتيجة النهائية",
     title: "السيرة الذاتية النهائية",
     subtitle: "راجع النتيجة، ثم قم بالتحميل أو النسخ أو التقديم على الوظيفة.",
     langAr: "العربية",
@@ -29,11 +29,12 @@ const i18n = {
     languages: "اللغات",
     contact: "التواصل",
     tailored: "سيرة مخصصة لوظيفة محفوظة",
-    previewOnly: "هذه معاينة نهائية لشكل السيرة قبل التقديم.",
+    previewOnly: "هذه النسخة النهائية الجاهزة للطباعة أو الحفظ بصيغة PDF.",
+    noPhoto: "صورة",
   },
   en: {
     dir: "ltr",
-    pageBadge: "FINAL RESULT",
+    badge: "FINAL RESULT",
     title: "Your Final CV",
     subtitle: "Review your result, then download, copy, or apply for the job.",
     langAr: "العربية",
@@ -52,20 +53,21 @@ const i18n = {
     languages: "Languages",
     contact: "Contact",
     tailored: "CV tailored for a saved job",
-    previewOnly: "This is your final CV preview before applying.",
+    previewOnly: "This is the final print-ready version of your CV.",
+    noPhoto: "Photo",
   },
 };
 
-function SectionLabel({ children }) {
+function SectionTitle({ children }) {
   return (
     <div
       style={{
-        fontSize: 14,
+        fontSize: 13,
         fontWeight: 800,
         color: "#2563eb",
-        marginBottom: 8,
+        letterSpacing: "0.08em",
         textTransform: "uppercase",
-        letterSpacing: "0.04em",
+        marginBottom: 10,
       }}
     >
       {children}
@@ -73,65 +75,224 @@ function SectionLabel({ children }) {
   );
 }
 
-function sidebarTemplate(t, data, photoPreview, hasJob) {
+function splitList(value, limit = 8) {
+  return String(value || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .slice(0, limit);
+}
+
+function createPlainText(t, data) {
+  return `
+${data.fullName || ""}
+${data.jobTitle || ""}
+
+${t.profile}
+${data.summary || ""}
+
+${t.work}
+${data.experience || ""}
+
+${t.education}
+${data.education || ""}
+
+${t.skills}
+${data.skills || ""}
+
+${t.languages}
+${data.languages || ""}
+
+${t.contact}
+${data.email || ""}
+${data.phone || ""}
+`.trim();
+}
+
+function Toolbar({ t, lang, setLang, onDownload, onCopy, copyMsg }) {
+  function changeLang(next) {
+    setLang(next);
+    localStorage.setItem("site_lang", next);
+  }
+
+  return (
+    <div className="no-print" style={styles.toolbar}>
+      <div style={styles.badge}>{t.badge}</div>
+
+      <div style={styles.toolbarActions}>
+        <button
+          type="button"
+          onClick={() => changeLang("ar")}
+          style={lang === "ar" ? styles.langBtnActive : styles.langBtn}
+        >
+          {t.langAr}
+        </button>
+        <button
+          type="button"
+          onClick={() => changeLang("en")}
+          style={lang === "en" ? styles.langBtnActive : styles.langBtn}
+        >
+          {t.langEn}
+        </button>
+
+        <button type="button" onClick={onDownload} style={styles.primaryButton}>
+          {t.downloadPdf}
+        </button>
+
+        <button type="button" onClick={onCopy} style={styles.secondaryButton}>
+          {t.copyText}
+        </button>
+
+        <a href="/generate" style={styles.secondaryBtn}>
+          {t.backGenerate}
+        </a>
+
+        <a href="/" style={styles.secondaryBtn}>
+          {t.backHome}
+        </a>
+      </div>
+
+      {copyMsg ? <div style={styles.copyMsg}>{copyMsg}</div> : null}
+    </div>
+  );
+}
+
+function StandardTemplate({ t, data, photoPreview, hasJob }) {
+  const skills = splitList(data.skills, 8);
+
+  return (
+    <div className="cv-sheet" style={styles.sheet}>
+      <div style={styles.standardHeader}>
+        <div style={{ flex: 1 }}>
+          {hasJob ? <div style={styles.jobHint}>{t.tailored}</div> : null}
+          <div style={styles.name}>{data.fullName || "Your Name"}</div>
+          <div style={styles.role}>{data.jobTitle || "Job Title"}</div>
+          <div style={styles.contactRow}>
+            <span>{data.email || "email@example.com"}</span>
+            <span>{data.phone || "+971..."}</span>
+          </div>
+        </div>
+
+        <div style={styles.photoWrap}>
+          {photoPreview ? (
+            <img src={photoPreview} alt="profile" style={styles.photo} />
+          ) : (
+            <div style={styles.photoPlaceholder}>{t.noPhoto}</div>
+          )}
+        </div>
+      </div>
+
+      <div style={styles.section}>
+        <SectionTitle>{t.profile}</SectionTitle>
+        <div style={styles.paragraph}>
+          {data.summary || "Professional summary will appear here."}
+        </div>
+      </div>
+
+      <div style={styles.section}>
+        <SectionTitle>{t.work}</SectionTitle>
+        <div style={styles.paragraph}>
+          {data.experience || "Work experience will appear here."}
+        </div>
+      </div>
+
+      <div style={styles.section}>
+        <SectionTitle>{t.education}</SectionTitle>
+        <div style={styles.paragraph}>
+          {data.education || "Education details will appear here."}
+        </div>
+      </div>
+
+      <div style={styles.section}>
+        <SectionTitle>{t.skills}</SectionTitle>
+        <div style={styles.skillRow}>
+          {(skills.length ? skills : ["Communication", "Leadership", "Planning"]).map(
+            (item, idx) => (
+              <span key={idx} style={styles.skillChip}>
+                {item}
+              </span>
+            )
+          )}
+        </div>
+      </div>
+
+      <div style={styles.section}>
+        <SectionTitle>{t.languages}</SectionTitle>
+        <div style={styles.paragraph}>
+          {data.languages || "Arabic, English"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SidebarTemplate({ t, data, photoPreview, hasJob }) {
   const skills = splitList(data.skills, 6);
   const languages = splitList(data.languages, 5);
 
   return (
-    <div style={previewWrapper}>
-      <div style={sidebarPreviewLayout}>
-        <div style={sidebarPreviewAside}>
-          <div style={photoFrame}>
-            {photoPreview ? (
-              <img src={photoPreview} alt="profile" style={photoStyle} />
-            ) : (
-              <div style={photoPlaceholder}>Photo</div>
+    <div className="cv-sheet" style={styles.sidebarSheet}>
+      <div style={styles.sidebarAside}>
+        <div style={styles.sidebarPhotoWrap}>
+          {photoPreview ? (
+            <img src={photoPreview} alt="profile" style={styles.photo} />
+          ) : (
+            <div style={styles.sidebarPhotoPlaceholder}>{t.noPhoto}</div>
+          )}
+        </div>
+
+        <div style={styles.sidebarName}>{data.fullName || "Your Name"}</div>
+        <div style={styles.sidebarRole}>{data.jobTitle || "Job Title"}</div>
+
+        <div style={{ marginTop: 22 }}>
+          <SectionTitle>{t.contact}</SectionTitle>
+          <div style={styles.asideText}>{data.email || "email@example.com"}</div>
+          <div style={styles.asideText}>{data.phone || "+971..."}</div>
+        </div>
+
+        <div style={{ marginTop: 22 }}>
+          <SectionTitle>{t.skills}</SectionTitle>
+          <div style={{ display: "grid", gap: 6 }}>
+            {(skills.length ? skills : ["Skill 1", "Skill 2", "Skill 3"]).map(
+              (item, idx) => (
+                <div key={idx} style={styles.asideText}>• {item}</div>
+              )
             )}
-          </div>
-
-          <div style={sidebarName}>{data.fullName || "Your Name"}</div>
-          <div style={sidebarRole}>{data.jobTitle || "Job Title"}</div>
-
-          <div style={{ marginTop: 20 }}>
-            <SectionLabel>{t.contact}</SectionLabel>
-            <div style={smallAsideText}>{data.email || "email@example.com"}</div>
-            <div style={smallAsideText}>{data.phone || "+971..."}</div>
-          </div>
-
-          <div style={{ marginTop: 20 }}>
-            <SectionLabel>{t.skills}</SectionLabel>
-            <div style={{ display: "grid", gap: 6 }}>
-              {(skills.length ? skills : ["Skill 1", "Skill 2", "Skill 3"]).map((item, idx) => (
-                <div key={idx} style={smallAsideText}>• {item}</div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginTop: 20 }}>
-            <SectionLabel>{t.languages}</SectionLabel>
-            <div style={{ display: "grid", gap: 6 }}>
-              {(languages.length ? languages : ["Arabic", "English"]).map((item, idx) => (
-                <div key={idx} style={smallAsideText}>• {item}</div>
-              ))}
-            </div>
           </div>
         </div>
 
-        <div style={sidebarPreviewMain}>
-          {hasJob ? <div style={jobHint}>{t.tailored}</div> : null}
+        <div style={{ marginTop: 22 }}>
+          <SectionTitle>{t.languages}</SectionTitle>
+          <div style={{ display: "grid", gap: 6 }}>
+            {(languages.length ? languages : ["Arabic", "English"]).map(
+              (item, idx) => (
+                <div key={idx} style={styles.asideText}>• {item}</div>
+              )
+            )}
+          </div>
+        </div>
+      </div>
 
-          <SectionLabel>{t.profile}</SectionLabel>
-          <div style={previewParagraph}>
+      <div style={styles.sidebarMain}>
+        {hasJob ? <div style={styles.jobHint}>{t.tailored}</div> : null}
+
+        <div style={styles.section}>
+          <SectionTitle>{t.profile}</SectionTitle>
+          <div style={styles.paragraph}>
             {data.summary || "Professional summary will appear here."}
           </div>
+        </div>
 
-          <SectionLabel>{t.work}</SectionLabel>
-          <div style={previewParagraph}>
+        <div style={styles.section}>
+          <SectionTitle>{t.work}</SectionTitle>
+          <div style={styles.paragraph}>
             {data.experience || "Work experience will appear here."}
           </div>
+        </div>
 
-          <SectionLabel>{t.education}</SectionLabel>
-          <div style={previewParagraph}>
+        <div style={styles.section}>
+          <SectionTitle>{t.education}</SectionTitle>
+          <div style={styles.paragraph}>
             {data.education || "Education details will appear here."}
           </div>
         </div>
@@ -140,78 +301,8 @@ function sidebarTemplate(t, data, photoPreview, hasJob) {
   );
 }
 
-function standardTemplate(t, data, photoPreview, hasJob) {
-  const skills = splitList(data.skills, 8);
-
-  return (
-    <div style={previewWrapper}>
-      <div style={standardPreviewCard}>
-        {hasJob ? <div style={jobHint}>{t.tailored}</div> : null}
-
-        <div style={standardTop}>
-          <div style={{ flex: 1 }}>
-            <div style={previewName}>{data.fullName || "Your Name"}</div>
-            <div style={previewRole}>{data.jobTitle || "Job Title"}</div>
-            <div style={previewContactRow}>
-              <span>{data.email || "email@example.com"}</span>
-              <span>{data.phone || "+971..."}</span>
-            </div>
-          </div>
-
-          <div style={standardPhotoWrap}>
-            {photoPreview ? (
-              <img src={photoPreview} alt="profile" style={photoStyle} />
-            ) : (
-              <div style={photoPlaceholder}>Photo</div>
-            )}
-          </div>
-        </div>
-
-        <SectionLabel>{t.profile}</SectionLabel>
-        <div style={previewParagraph}>
-          {data.summary || "Professional summary will appear here."}
-        </div>
-
-        <SectionLabel>{t.work}</SectionLabel>
-        <div style={previewParagraph}>
-          {data.experience || "Work experience will appear here."}
-        </div>
-
-        <SectionLabel>{t.education}</SectionLabel>
-        <div style={previewParagraph}>
-          {data.education || "Education details will appear here."}
-        </div>
-
-        <SectionLabel>{t.skills}</SectionLabel>
-        <div style={chipRow}>
-          {(skills.length ? skills : ["Communication", "Leadership", "Planning"]).map((item, idx) => (
-            <span key={idx} style={skillChip}>{item}</span>
-          ))}
-        </div>
-
-        <div style={{ marginTop: 18 }}>
-          <SectionLabel>{t.languages}</SectionLabel>
-          <div style={previewParagraph}>
-            {data.languages || "Arabic, English"}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function splitList(value, limit = 6) {
-  return String(value || "")
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean)
-    .slice(0, limit);
-}
-
 export default function ResultPage() {
   const [lang, setLang] = useState("ar");
-  const t = i18n[lang];
-
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [photoPreview, setPhotoPreview] = useState("");
@@ -219,11 +310,11 @@ export default function ResultPage() {
   const [hasJob, setHasJob] = useState(false);
   const [copyMsg, setCopyMsg] = useState("");
 
+  const t = i18n[lang];
+
   useEffect(() => {
     const savedLang = localStorage.getItem("site_lang");
-    if (savedLang === "ar" || savedLang === "en") {
-      setLang(savedLang);
-    }
+    if (savedLang === "ar" || savedLang === "en") setLang(savedLang);
 
     const savedPhoto = localStorage.getItem(PHOTO_KEY);
     if (savedPhoto) setPhotoPreview(savedPhoto);
@@ -260,11 +351,7 @@ export default function ResultPage() {
           return;
         }
 
-        const cvData =
-          parsed?.cv ||
-          parsed?.data ||
-          parsed?.result ||
-          parsed;
+        const cvData = parsed?.cv || parsed?.data || parsed?.result || parsed;
 
         setData({
           fullName: cvData?.fullName || cvData?.name || "",
@@ -287,40 +374,11 @@ export default function ResultPage() {
     loadResult();
   }, []);
 
-  function changeLang(next) {
-    setLang(next);
-    localStorage.setItem("site_lang", next);
-  }
-
   async function copyText() {
     if (!data) return;
 
-    const text = `
-${data.fullName || ""}
-${data.jobTitle || ""}
-
-${t.profile}
-${data.summary || ""}
-
-${t.work}
-${data.experience || ""}
-
-${t.education}
-${data.education || ""}
-
-${t.skills}
-${data.skills || ""}
-
-${t.languages}
-${data.languages || ""}
-
-${t.contact}
-${data.email || ""}
-${data.phone || ""}
-    `.trim();
-
     try {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(createPlainText(t, data));
       setCopyMsg(t.copied);
       setTimeout(() => setCopyMsg(""), 2000);
     } catch {}
@@ -331,9 +389,21 @@ ${data.phone || ""}
   }
 
   const preview =
-    template === "sidebar_pro"
-      ? sidebarTemplate(t, data || {}, photoPreview, hasJob)
-      : standardTemplate(t, data || {}, photoPreview, hasJob);
+    template === "sidebar_pro" ? (
+      <SidebarTemplate
+        t={t}
+        data={data || {}}
+        photoPreview={photoPreview}
+        hasJob={hasJob}
+      />
+    ) : (
+      <StandardTemplate
+        t={t}
+        data={data || {}}
+        photoPreview={photoPreview}
+        hasJob={hasJob}
+      />
+    );
 
   return (
     <main
@@ -346,131 +416,65 @@ ${data.phone || ""}
         padding: "36px 20px 70px",
       }}
     >
+      <style>{`
+        @media print {
+          body {
+            background: #ffffff !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .cv-sheet {
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+          }
+          main {
+            padding: 0 !important;
+            background: #ffffff !important;
+          }
+        }
+      `}</style>
+
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 12,
-            flexWrap: "wrap",
-            alignItems: "center",
-            marginBottom: 16,
-          }}
-        >
-          <div style={badge}>{t.pageBadge}</div>
+        <Toolbar
+          t={t}
+          lang={lang}
+          setLang={setLang}
+          onDownload={downloadPdf}
+          onCopy={copyText}
+          copyMsg={copyMsg}
+        />
 
-          <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => changeLang("ar")}
-              style={lang === "ar" ? langActiveBtn : langBtn}
-            >
-              {t.langAr}
-            </button>
-            <button
-              type="button"
-              onClick={() => changeLang("en")}
-              style={lang === "en" ? langActiveBtn : langBtn}
-            >
-              {t.langEn}
-            </button>
-          </div>
-        </div>
-
-        <div
-          style={{
-            background: "#ffffff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 32,
-            padding: 28,
-            boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
-            marginBottom: 22,
-          }}
-        >
-          <h1
-            style={{
-              margin: "0 0 12px",
-              fontSize: "clamp(34px, 6vw, 52px)",
-              lineHeight: 1.05,
-              fontWeight: 900,
-              color: "#0f172a",
-            }}
-          >
-            {t.title}
-          </h1>
-
-          <p
-            style={{
-              margin: 0,
-              color: "#475569",
-              fontSize: 17,
-              lineHeight: 1.9,
-            }}
-          >
-            {t.subtitle}
-          </p>
+        <div className="no-print" style={styles.topIntro}>
+          <h1 style={styles.pageTitle}>{t.title}</h1>
+          <p style={styles.pageSubtitle}>{t.subtitle}</p>
         </div>
 
         {loading ? (
-          <div style={panel}>
-            <div style={infoText}>{t.loading}</div>
+          <div style={styles.panel}>
+            <div style={styles.infoText}>{t.loading}</div>
           </div>
         ) : !data ? (
-          <div style={panel}>
-            <div style={infoText}>{t.noData}</div>
+          <div style={styles.panel}>
+            <div style={styles.infoText}>{t.noData}</div>
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
-              <a href="/generate" style={primaryBtn}>{t.backGenerate}</a>
-              <a href="/" style={secondaryBtn}>{t.backHome}</a>
+              <a href="/generate" style={styles.primaryBtn}>
+                {t.backGenerate}
+              </a>
+              <a href="/" style={styles.secondaryBtn}>
+                {t.backHome}
+              </a>
             </div>
           </div>
         ) : (
           <>
-            <div
-              style={{
-                background: "#ffffff",
-                border: "1px solid #e5e7eb",
-                borderRadius: 32,
-                padding: 22,
-                boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
-                marginBottom: 22,
-              }}
-            >
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <button type="button" onClick={downloadPdf} style={primaryButton}>
-                  {t.downloadPdf}
-                </button>
-                <button type="button" onClick={copyText} style={secondaryButton}>
-                  {t.copyText}
-                </button>
-                <a href="/generate" style={secondaryBtn}>
-                  {t.backGenerate}
-                </a>
-                <a href="/" style={secondaryBtn}>
-                  {t.backHome}
-                </a>
-              </div>
-
-              {copyMsg ? (
-                <div style={{ marginTop: 14, color: "#2563eb", fontWeight: 700 }}>
-                  {copyMsg}
-                </div>
-              ) : null}
+            <div className="no-print" style={styles.panel}>
+              <div style={styles.previewNotice}>{t.previewOnly}</div>
             </div>
-
-            <div
-              style={{
-                background: "#ffffff",
-                border: "1px solid #e5e7eb",
-                borderRadius: 32,
-                padding: 22,
-                boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
-              }}
-            >
-              <div style={{ marginBottom: 14, color: "#64748b", fontSize: 14 }}>
-                {t.previewOnly}
-              </div>
-              {preview}
-            </div>
+            {preview}
           </>
         )}
       </div>
@@ -478,252 +482,283 @@ ${data.phone || ""}
   );
 }
 
-const panel = {
-  background: "#ffffff",
-  border: "1px solid #e5e7eb",
-  borderRadius: 32,
-  padding: 28,
-  boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
-};
-
-const infoText = {
-  color: "#475569",
-  fontSize: 18,
-  lineHeight: 1.8,
-};
-
-const badge = {
-  display: "inline-block",
-  padding: "10px 16px",
-  borderRadius: 999,
-  background: "#eff6ff",
-  color: "#2563eb",
-  fontSize: 14,
-  fontWeight: 800,
-};
-
-const primaryButton = {
-  border: "none",
-  borderRadius: 18,
-  padding: "16px 24px",
-  minWidth: 180,
-  fontSize: 18,
-  fontWeight: 900,
-  cursor: "pointer",
-  background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
-  color: "#ffffff",
-  boxShadow: "0 12px 28px rgba(37,99,235,0.20)",
-};
-
-const secondaryButton = {
-  border: "1px solid #dbeafe",
-  background: "#ffffff",
-  color: "#0f172a",
-  padding: "16px 24px",
-  borderRadius: 18,
-  fontWeight: 800,
-  cursor: "pointer",
-  fontSize: 17,
-};
-
-const secondaryBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minWidth: 180,
-  padding: "16px 24px",
-  borderRadius: 18,
-  textDecoration: "none",
-  fontWeight: 800,
-  fontSize: 17,
-  border: "1px solid #dbeafe",
-  background: "#ffffff",
-  color: "#0f172a",
-};
-
-const primaryBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minWidth: 220,
-  padding: "16px 24px",
-  borderRadius: 18,
-  textDecoration: "none",
-  fontWeight: 900,
-  fontSize: 17,
-  background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
-  color: "#ffffff",
-};
-
-const langBtn = {
-  border: "1px solid #dbeafe",
-  background: "#ffffff",
-  color: "#0f172a",
-  padding: "10px 14px",
-  borderRadius: 12,
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const langActiveBtn = {
-  border: "1px solid #60a5fa",
-  background: "#eff6ff",
-  color: "#2563eb",
-  padding: "10px 14px",
-  borderRadius: 12,
-  fontWeight: 800,
-  cursor: "pointer",
-};
-
-const previewWrapper = {
-  borderRadius: 24,
-  overflow: "hidden",
-  background: "#f8fbff",
-  border: "1px solid #dbeafe",
-};
-
-const standardPreviewCard = {
-  padding: 18,
-  background: "#ffffff",
-};
-
-const standardTop = {
-  display: "flex",
-  gap: 16,
-  justifyContent: "space-between",
-  alignItems: "flex-start",
-  marginBottom: 16,
-};
-
-const standardPhotoWrap = {
-  width: 96,
-  height: 96,
-  borderRadius: 20,
-  overflow: "hidden",
-  border: "1px solid #dbeafe",
-  flexShrink: 0,
-  background: "#eff6ff",
-};
-
-const sidebarPreviewLayout = {
-  display: "grid",
-  gridTemplateColumns: "240px 1fr",
-  minHeight: 560,
-};
-
-const sidebarPreviewAside = {
-  background: "linear-gradient(180deg, #1e3a8a 0%, #2563eb 100%)",
-  color: "#ffffff",
-  padding: 22,
-};
-
-const sidebarPreviewMain = {
-  background: "#ffffff",
-  padding: 22,
-};
-
-const photoFrame = {
-  width: 140,
-  height: 140,
-  borderRadius: 24,
-  overflow: "hidden",
-  border: "2px solid rgba(255,255,255,0.25)",
-  background: "rgba(255,255,255,0.12)",
-  marginBottom: 18,
-};
-
-const photoStyle = {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-};
-
-const photoPlaceholder = {
-  width: "100%",
-  height: "100%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "#64748b",
-  fontWeight: 700,
-  background: "#eff6ff",
-};
-
-const previewName = {
-  fontSize: 28,
-  fontWeight: 900,
-  color: "#0f172a",
-  lineHeight: 1.1,
-  marginBottom: 6,
-};
-
-const sidebarName = {
-  fontSize: 30,
-  fontWeight: 900,
-  color: "#ffffff",
-  lineHeight: 1.1,
-  marginBottom: 6,
-};
-
-const previewRole = {
-  fontSize: 16,
-  color: "#2563eb",
-  fontWeight: 700,
-  marginBottom: 10,
-};
-
-const sidebarRole = {
-  fontSize: 16,
-  color: "#dbeafe",
-  fontWeight: 700,
-  marginBottom: 10,
-};
-
-const previewContactRow = {
-  display: "flex",
-  gap: 12,
-  flexWrap: "wrap",
-  color: "#64748b",
-  fontSize: 14,
-};
-
-const previewParagraph = {
-  color: "#475569",
-  lineHeight: 1.8,
-  fontSize: 15,
-  marginBottom: 16,
-  whiteSpace: "pre-wrap",
-};
-
-const chipRow = {
-  display: "flex",
-  gap: 8,
-  flexWrap: "wrap",
-};
-
-const skillChip = {
-  padding: "8px 12px",
-  borderRadius: 999,
-  background: "#eff6ff",
-  color: "#2563eb",
-  fontSize: 13,
-  fontWeight: 700,
-};
-
-const smallAsideText = {
-  color: "rgba(255,255,255,0.92)",
-  fontSize: 14,
-  lineHeight: 1.7,
-};
-
-const jobHint = {
-  display: "inline-block",
-  marginBottom: 12,
-  padding: "8px 12px",
-  borderRadius: 999,
-  background: "#eff6ff",
-  color: "#2563eb",
-  fontSize: 12,
-  fontWeight: 800,
+const styles = {
+  toolbar: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  toolbarActions: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+    alignItems: "center",
+  },
+  copyMsg: {
+    width: "100%",
+    color: "#2563eb",
+    fontWeight: 700,
+  },
+  topIntro: {
+    background: "#ffffff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 32,
+    padding: 28,
+    boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+    marginBottom: 22,
+  },
+  pageTitle: {
+    margin: "0 0 12px",
+    fontSize: "clamp(34px, 6vw, 52px)",
+    lineHeight: 1.05,
+    fontWeight: 900,
+    color: "#0f172a",
+  },
+  pageSubtitle: {
+    margin: 0,
+    color: "#475569",
+    fontSize: 17,
+    lineHeight: 1.9,
+  },
+  panel: {
+    background: "#ffffff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 32,
+    padding: 22,
+    boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+    marginBottom: 22,
+  },
+  infoText: {
+    color: "#475569",
+    fontSize: 18,
+    lineHeight: 1.8,
+  },
+  previewNotice: {
+    color: "#64748b",
+    fontSize: 14,
+  },
+  badge: {
+    display: "inline-block",
+    padding: "10px 16px",
+    borderRadius: 999,
+    background: "#eff6ff",
+    color: "#2563eb",
+    fontSize: 14,
+    fontWeight: 800,
+  },
+  primaryButton: {
+    border: "none",
+    borderRadius: 18,
+    padding: "16px 24px",
+    minWidth: 180,
+    fontSize: 18,
+    fontWeight: 900,
+    cursor: "pointer",
+    background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
+    color: "#ffffff",
+    boxShadow: "0 12px 28px rgba(37,99,235,0.20)",
+  },
+  secondaryButton: {
+    border: "1px solid #dbeafe",
+    background: "#ffffff",
+    color: "#0f172a",
+    padding: "16px 24px",
+    borderRadius: 18,
+    fontWeight: 800,
+    cursor: "pointer",
+    fontSize: 17,
+  },
+  secondaryBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 180,
+    padding: "16px 24px",
+    borderRadius: 18,
+    textDecoration: "none",
+    fontWeight: 800,
+    fontSize: 17,
+    border: "1px solid #dbeafe",
+    background: "#ffffff",
+    color: "#0f172a",
+  },
+  primaryBtn: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: 220,
+    padding: "16px 24px",
+    borderRadius: 18,
+    textDecoration: "none",
+    fontWeight: 900,
+    fontSize: 17,
+    background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
+    color: "#ffffff",
+  },
+  langBtn: {
+    border: "1px solid #dbeafe",
+    background: "#ffffff",
+    color: "#0f172a",
+    padding: "10px 14px",
+    borderRadius: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  langBtnActive: {
+    border: "1px solid #60a5fa",
+    background: "#eff6ff",
+    color: "#2563eb",
+    padding: "10px 14px",
+    borderRadius: 12,
+    fontWeight: 800,
+    cursor: "pointer",
+  },
+  sheet: {
+    background: "#ffffff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 28,
+    padding: 26,
+    boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+  },
+  sidebarSheet: {
+    background: "#ffffff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 28,
+    overflow: "hidden",
+    boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+    display: "grid",
+    gridTemplateColumns: "260px 1fr",
+  },
+  standardHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 16,
+    alignItems: "flex-start",
+    marginBottom: 20,
+  },
+  photoWrap: {
+    width: 110,
+    height: 110,
+    borderRadius: 24,
+    overflow: "hidden",
+    background: "#eff6ff",
+    border: "1px solid #dbeafe",
+    flexShrink: 0,
+  },
+  photo: {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+  },
+  photoPlaceholder: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#64748b",
+    fontWeight: 700,
+    background: "#eff6ff",
+  },
+  name: {
+    fontSize: 34,
+    fontWeight: 900,
+    color: "#0f172a",
+    lineHeight: 1.05,
+    marginBottom: 6,
+  },
+  role: {
+    fontSize: 18,
+    color: "#2563eb",
+    fontWeight: 700,
+    marginBottom: 10,
+  },
+  contactRow: {
+    display: "flex",
+    gap: 14,
+    flexWrap: "wrap",
+    color: "#64748b",
+    fontSize: 14,
+  },
+  section: {
+    marginTop: 18,
+  },
+  paragraph: {
+    color: "#475569",
+    lineHeight: 1.9,
+    fontSize: 15,
+    whiteSpace: "pre-wrap",
+  },
+  skillRow: {
+    display: "flex",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  skillChip: {
+    padding: "8px 12px",
+    borderRadius: 999,
+    background: "#eff6ff",
+    color: "#2563eb",
+    fontSize: 13,
+    fontWeight: 700,
+  },
+  sidebarAside: {
+    background: "linear-gradient(180deg, #1e3a8a 0%, #2563eb 100%)",
+    color: "#ffffff",
+    padding: 24,
+  },
+  sidebarMain: {
+    background: "#ffffff",
+    padding: 24,
+  },
+  sidebarPhotoWrap: {
+    width: 150,
+    height: 150,
+    borderRadius: 24,
+    overflow: "hidden",
+    background: "rgba(255,255,255,0.12)",
+    border: "2px solid rgba(255,255,255,0.25)",
+    marginBottom: 18,
+  },
+  sidebarPhotoPlaceholder: {
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#ffffff",
+    fontWeight: 700,
+  },
+  sidebarName: {
+    fontSize: 32,
+    fontWeight: 900,
+    color: "#ffffff",
+    lineHeight: 1.05,
+    marginBottom: 6,
+  },
+  sidebarRole: {
+    fontSize: 17,
+    color: "#dbeafe",
+    fontWeight: 700,
+    marginBottom: 10,
+  },
+  asideText: {
+    color: "rgba(255,255,255,0.92)",
+    fontSize: 14,
+    lineHeight: 1.8,
+  },
+  jobHint: {
+    display: "inline-block",
+    marginBottom: 12,
+    padding: "8px 12px",
+    borderRadius: 999,
+    background: "#eff6ff",
+    color: "#2563eb",
+    fontSize: 12,
+    fontWeight: 800,
+  },
 };
 
