@@ -167,8 +167,8 @@ function StandardTemplate({ t, data, photoPreview, hasJob }) {
       <div style={styles.standardHeader}>
         <div style={{ flex: 1 }}>
           {hasJob ? <div style={styles.jobHint}>{t.tailored}</div> : null}
-          <div style={styles.name}>{data.fullName || "Your Name"}</div>
-          <div style={styles.role}>{data.jobTitle || "Job Title"}</div>
+          <div className="cv-name" style={styles.name}>{data.fullName || "Your Name"}</div>
+          <div className="cv-role" style={styles.role}>{data.jobTitle || "Job Title"}</div>
           <div style={styles.contactRow}>
             <span>{data.email || "email@example.com"}</span>
             <span>{data.phone || "+971..."}</span>
@@ -177,40 +177,40 @@ function StandardTemplate({ t, data, photoPreview, hasJob }) {
 
         <div style={styles.photoWrap}>
           {photoPreview ? (
-            <img src={photoPreview} alt="profile" style={styles.photo} />
+            <img src={photoPreview} alt="profile" className="cv-photo" style={styles.photo} />
           ) : (
             <div style={styles.photoPlaceholder}>{t.noPhoto}</div>
           )}
         </div>
       </div>
 
-      <div style={styles.section}>
+      <div className="cv-section" style={styles.section}>
         <SectionTitle>{t.profile}</SectionTitle>
-        <div style={styles.paragraph}>
+        <div className="cv-text" style={styles.paragraph}>
           {data.summary || "Professional summary will appear here."}
         </div>
       </div>
 
-      <div style={styles.section}>
+      <div className="cv-section" style={styles.section}>
         <SectionTitle>{t.work}</SectionTitle>
-        <div style={styles.paragraph}>
+        <div className="cv-text" style={styles.paragraph}>
           {data.experience || "Work experience will appear here."}
         </div>
       </div>
 
-      <div style={styles.section}>
+      <div className="cv-section" style={styles.section}>
         <SectionTitle>{t.education}</SectionTitle>
-        <div style={styles.paragraph}>
+        <div className="cv-text" style={styles.paragraph}>
           {data.education || "Education details will appear here."}
         </div>
       </div>
 
-      <div style={styles.section}>
+      <div className="cv-section" style={styles.section}>
         <SectionTitle>{t.skills}</SectionTitle>
         <div style={styles.skillRow}>
           {(skills.length ? skills : ["Communication", "Leadership", "Planning"]).map(
             (item, idx) => (
-              <span key={idx} style={styles.skillChip}>
+              <span key={idx} className="cv-chip" style={styles.skillChip}>
                 {item}
               </span>
             )
@@ -218,9 +218,9 @@ function StandardTemplate({ t, data, photoPreview, hasJob }) {
         </div>
       </div>
 
-      <div style={styles.section}>
+      <div className="cv-section" style={styles.section}>
         <SectionTitle>{t.languages}</SectionTitle>
-        <div style={styles.paragraph}>
+        <div className="cv-text" style={styles.paragraph}>
           {data.languages || "Arabic, English"}
         </div>
       </div>
@@ -237,22 +237,22 @@ function SidebarTemplate({ t, data, photoPreview, hasJob }) {
       <div style={styles.sidebarAside}>
         <div style={styles.sidebarPhotoWrap}>
           {photoPreview ? (
-            <img src={photoPreview} alt="profile" style={styles.photo} />
+            <img src={photoPreview} alt="profile" className="cv-photo" style={styles.photo} />
           ) : (
             <div style={styles.sidebarPhotoPlaceholder}>{t.noPhoto}</div>
           )}
         </div>
 
-        <div style={styles.sidebarName}>{data.fullName || "Your Name"}</div>
-        <div style={styles.sidebarRole}>{data.jobTitle || "Job Title"}</div>
+        <div className="cv-name" style={styles.sidebarName}>{data.fullName || "Your Name"}</div>
+        <div className="cv-role" style={styles.sidebarRole}>{data.jobTitle || "Job Title"}</div>
 
-        <div style={{ marginTop: 22 }}>
+        <div className="cv-section" style={{ marginTop: 22 }}>
           <SectionTitle>{t.contact}</SectionTitle>
           <div style={styles.asideText}>{data.email || "email@example.com"}</div>
           <div style={styles.asideText}>{data.phone || "+971..."}</div>
         </div>
 
-        <div style={{ marginTop: 22 }}>
+        <div className="cv-section" style={{ marginTop: 22 }}>
           <SectionTitle>{t.skills}</SectionTitle>
           <div style={{ display: "grid", gap: 6 }}>
             {(skills.length ? skills : ["Skill 1", "Skill 2", "Skill 3"]).map(
@@ -263,7 +263,7 @@ function SidebarTemplate({ t, data, photoPreview, hasJob }) {
           </div>
         </div>
 
-        <div style={{ marginTop: 22 }}>
+        <div className="cv-section" style={{ marginTop: 22 }}>
           <SectionTitle>{t.languages}</SectionTitle>
           <div style={{ display: "grid", gap: 6 }}>
             {(languages.length ? languages : ["Arabic", "English"]).map(
@@ -278,23 +278,23 @@ function SidebarTemplate({ t, data, photoPreview, hasJob }) {
       <div style={styles.sidebarMain}>
         {hasJob ? <div style={styles.jobHint}>{t.tailored}</div> : null}
 
-        <div style={styles.section}>
+        <div className="cv-section" style={styles.section}>
           <SectionTitle>{t.profile}</SectionTitle>
-          <div style={styles.paragraph}>
+          <div className="cv-text" style={styles.paragraph}>
             {data.summary || "Professional summary will appear here."}
           </div>
         </div>
 
-        <div style={styles.section}>
+        <div className="cv-section" style={styles.section}>
           <SectionTitle>{t.work}</SectionTitle>
-          <div style={styles.paragraph}>
+          <div className="cv-text" style={styles.paragraph}>
             {data.experience || "Work experience will appear here."}
           </div>
         </div>
 
-        <div style={styles.section}>
+        <div className="cv-section" style={styles.section}>
           <SectionTitle>{t.education}</SectionTitle>
-          <div style={styles.paragraph}>
+          <div className="cv-text" style={styles.paragraph}>
             {data.education || "Education details will appear here."}
           </div>
         </div>
@@ -427,20 +427,67 @@ export default function ResultPage() {
       }}
     >
       <style>{`
+        @page {
+          size: A4;
+          margin: 12mm;
+        }
+
+        html, body {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
         @media print {
           body {
             background: #ffffff !important;
           }
+
           .no-print {
             display: none !important;
           }
+
           .cv-sheet {
             box-shadow: none !important;
             border: none !important;
             border-radius: 0 !important;
-            margin: 0 !important;
+            margin: 0 auto !important;
             width: 100% !important;
+            max-width: 210mm !important;
+            min-height: 267mm !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
           }
+
+          .cv-section {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+
+          .cv-name {
+            font-size: 30px !important;
+            line-height: 1.05 !important;
+          }
+
+          .cv-role {
+            font-size: 16px !important;
+          }
+
+          .cv-text {
+            font-size: 13.5px !important;
+            line-height: 1.7 !important;
+          }
+
+          .cv-chip {
+            font-size: 11px !important;
+            padding: 6px 10px !important;
+          }
+
+          .cv-photo {
+            object-fit: cover !important;
+          }
+
           main {
             padding: 0 !important;
             background: #ffffff !important;
@@ -630,8 +677,12 @@ const styles = {
     background: "#ffffff",
     border: "1px solid #e5e7eb",
     borderRadius: 28,
-    padding: 26,
+    padding: 30,
     boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+    width: "100%",
+    maxWidth: "210mm",
+    minHeight: "267mm",
+    margin: "0 auto",
   },
   sidebarSheet: {
     background: "#ffffff",
@@ -641,6 +692,10 @@ const styles = {
     boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
     display: "grid",
     gridTemplateColumns: "260px 1fr",
+    width: "100%",
+    maxWidth: "210mm",
+    minHeight: "267mm",
+    margin: "0 auto",
   },
   standardHeader: {
     display: "flex",
@@ -674,17 +729,17 @@ const styles = {
     background: "#eff6ff",
   },
   name: {
-    fontSize: 34,
+    fontSize: 36,
     fontWeight: 900,
     color: "#0f172a",
-    lineHeight: 1.05,
+    lineHeight: 1.02,
     marginBottom: 6,
   },
   role: {
     fontSize: 18,
     color: "#2563eb",
     fontWeight: 700,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   contactRow: {
     display: "flex",
@@ -698,7 +753,7 @@ const styles = {
   },
   paragraph: {
     color: "#475569",
-    lineHeight: 1.9,
+    lineHeight: 1.85,
     fontSize: 15,
     whiteSpace: "pre-wrap",
   },
