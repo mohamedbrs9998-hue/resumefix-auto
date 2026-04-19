@@ -6,6 +6,9 @@ const translations = {
   ar: {
     dir: "rtl",
     brandSub: "إنشاء سيرة ذاتية • دفع • وظائف",
+    langAr: "العربية",
+    langEn: "English",
+
     navHome: "الرئيسية",
     navCv: "إنشاء السيرة",
     navPayment: "الدفع",
@@ -110,6 +113,9 @@ const translations = {
   en: {
     dir: "ltr",
     brandSub: "CV Builder • Payment • Jobs",
+    langAr: "العربية",
+    langEn: "English",
+
     navHome: "Home",
     navCv: "CV Builder",
     navPayment: "Payment",
@@ -730,17 +736,17 @@ export default function HomePage() {
   }, []);
 
   const locations = useMemo(
-    () => [ "all", ...new Set(jobs.map((job) => job.location).filter(Boolean)) ],
+    () => ["all", ...new Set(jobs.map((job) => job.location).filter(Boolean))],
     [jobs]
   );
 
   const specialties = useMemo(
-    () => [ "all", ...new Set(jobs.map((job) => job.specialty).filter(Boolean)) ],
+    () => ["all", ...new Set(jobs.map((job) => job.specialty).filter(Boolean))],
     [jobs]
   );
 
   const jobTypes = useMemo(
-    () => [ "all", ...new Set(jobs.map((job) => job.job_type).filter(Boolean)) ],
+    () => ["all", ...new Set(jobs.map((job) => job.job_type).filter(Boolean))],
     [jobs]
   );
 
@@ -844,14 +850,14 @@ export default function HomePage() {
                   onClick={() => switchLang("ar")}
                   style={lang === "ar" ? langActiveBtn : langBtn}
                 >
-                  العربية
+                  {t.langAr}
                 </button>
                 <button
                   type="button"
                   onClick={() => switchLang("en")}
                   style={lang === "en" ? langActiveBtn : langBtn}
                 >
-                  English
+                  {t.langEn}
                 </button>
               </div>
             </div>
@@ -1137,235 +1143,5 @@ export default function HomePage() {
           >
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t.jobsSearch}
-              style={inputStyle}
-            />
+              onChange={(e) => set
 
-            <select value={locationFilter} onChange={(e) => setLocationFilter(e.target.value)} style={inputStyle}>
-              {locations.map((item) => (
-                <option key={item} value={item}>
-                  {item === "all" ? t.allLocations : item}
-                </option>
-              ))}
-            </select>
-
-            <select value={specialtyFilter} onChange={(e) => setSpecialtyFilter(e.target.value)} style={inputStyle}>
-              {specialties.map((item) => (
-                <option key={item} value={item}>
-                  {item === "all" ? t.allSpecialties : item}
-                </option>
-              ))}
-            </select>
-
-            <select value={jobTypeFilter} onChange={(e) => setJobTypeFilter(e.target.value)} style={inputStyle}>
-              {jobTypes.map((item) => (
-                <option key={item} value={item}>
-                  {item === "all" ? t.allTypes : item}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {jobsLoading ? (
-            <InfoBox text={t.loadingJobs} />
-          ) : jobsError ? (
-            <InfoBox text={`${t.jobsErrorPrefix} ${jobsError}`} error />
-          ) : filteredJobs.length === 0 ? (
-            <InfoBox text={t.noJobs} />
-          ) : (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                gap: 18,
-              }}
-            >
-              {filteredJobs.map((job) => (
-                <JobCard key={job.id} job={job} t={t} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section
-          id="result"
-          style={{
-            background: "#ffffff",
-            border: "1px solid #e5e7eb",
-            borderRadius: 32,
-            padding: 28,
-            boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
-          }}
-        >
-          <div style={badge}>{t.resultBadge}</div>
-          <h2 style={sectionTitle}>{t.resultTitle}</h2>
-          <p style={sectionText}>{t.resultDesc}</p>
-
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <a href="/result" style={primaryBtn}>{t.openResult}</a>
-            <a href="#jobs" style={secondaryBtn}>{t.navJobs}</a>
-          </div>
-        </section>
-      </div>
-    </main>
-  );
-}
-
-const badge = {
-  display: "inline-block",
-  marginBottom: 14,
-  padding: "10px 16px",
-  borderRadius: 999,
-  background: "#eff6ff",
-  color: "#2563eb",
-  fontSize: 14,
-  fontWeight: 800,
-};
-
-const sectionTitle = {
-  margin: "0 0 18px",
-  fontSize: 34,
-  fontWeight: 900,
-  color: "#0f172a",
-};
-
-const sectionText = {
-  margin: "0 0 18px",
-  color: "#475569",
-  fontSize: 17,
-  lineHeight: 1.8,
-};
-
-const tagStyle = {
-  padding: "8px 12px",
-  borderRadius: 999,
-  background: "#eff6ff",
-  color: "#2563eb",
-  fontSize: 13,
-  fontWeight: 700,
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "14px 16px",
-  borderRadius: 16,
-  border: "1px solid #dbeafe",
-  background: "#ffffff",
-  color: "#0f172a",
-  fontSize: 16,
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const primaryBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minWidth: 190,
-  padding: "16px 24px",
-  borderRadius: 18,
-  textDecoration: "none",
-  fontWeight: 900,
-  fontSize: 17,
-  background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
-  color: "#ffffff",
-  boxShadow: "0 12px 28px rgba(37,99,235,0.20)",
-};
-
-const secondaryBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minWidth: 170,
-  padding: "16px 24px",
-  borderRadius: 18,
-  textDecoration: "none",
-  fontWeight: 800,
-  fontSize: 17,
-  border: "1px solid #dbeafe",
-  background: "#ffffff",
-  color: "#0f172a",
-};
-
-const outlineBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  minWidth: 170,
-  padding: "16px 24px",
-  borderRadius: 18,
-  textDecoration: "none",
-  fontWeight: 800,
-  fontSize: 17,
-  border: "1px solid #bfdbfe",
-  background: "#eff6ff",
-  color: "#1d4ed8",
-};
-
-const primarySmallBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  textDecoration: "none",
-  fontWeight: 800,
-  background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
-  color: "#ffffff",
-};
-
-const whatsappBtn = {
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  padding: "12px 16px",
-  borderRadius: 14,
-  textDecoration: "none",
-  fontWeight: 800,
-  background: "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
-  color: "#ffffff",
-};
-
-const secondaryButton = {
-  border: "1px solid #dbeafe",
-  background: "#ffffff",
-  color: "#0f172a",
-  padding: "12px 16px",
-  borderRadius: 14,
-  fontWeight: 800,
-  cursor: "pointer",
-};
-
-const primaryButton = {
-  border: "none",
-  borderRadius: 18,
-  padding: "16px 24px",
-  minWidth: 220,
-  fontSize: 18,
-  fontWeight: 900,
-  cursor: "pointer",
-  background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
-  color: "#ffffff",
-};
-
-const langBtn = {
-  border: "1px solid #dbeafe",
-  background: "#ffffff",
-  color: "#0f172a",
-  padding: "10px 14px",
-  borderRadius: 12,
-  fontWeight: 700,
-  cursor: "pointer",
-};
-
-const langActiveBtn = {
-  border: "1px solid #60a5fa",
-  background: "#eff6ff",
-  color: "#2563eb",
-  padding: "10px 14px",
-  borderRadius: 12,
-  fontWeight: 800,
-  cursor: "pointer",
-};
-احصل على Outlook for Android
