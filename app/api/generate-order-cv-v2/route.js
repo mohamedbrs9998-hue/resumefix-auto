@@ -1,215 +1,245 @@
-import OpenAI from "openai";
-import { NextResponse } from "next/server";
-
-function pick(...values) {
-  for (const value of values) {
-    if (value !== undefined && value !== null && String(value).trim() !== "") {
-      return String(value).trim();
-    }
-  }
-  return "";
-}
-
-function buildPrompt(order) {
-  const fullName = pick(order.fullName, order.full_name, "Candidate");
-  const jobTitle = pick(
-    order.jobTitle,
-    order.job_title,
-    order.target_role,
-    "Professional"
-  );
-  const email = pick(order.email);
-  const phone = pick(order.phone);
-  const summary = pick(order.summary, order.summary_notes);
-  const experience = pick(order.experience, order.work_experience);
-  const education = pick(order.education);
-  const skills = pick(order.skills);
-  const languages = pick(order.languages);
-  const yearsExperience = pick(order.years_experience);
-  const location = pick(order.location);
-  const certifications = pick(order.certifications);
-
+function buildFallbackCv(order) {
   return `
-Write a complete, polished, ATS-friendly professional CV in plain text for this candidate.
+${order.fullName || "Your Name"}
+${order.jobTitle || "Professional Title"}
 
-Rules:
-- Return plain text only.
-- Do not return JSON.
-- Do not use markdown code fences.
-- Make it professional, concise, and recruiter-friendly.
-- Use strong action-oriented wording.
-- If some information is missing, work professionally with what is available and do not invent specific facts.
+PROFILE
+${order.summary || "Professional summary not provided."}
 
-Candidate details:
-Full name: ${fullName}
-Target title: ${jobTitle}
-Email: ${email}
-Phone: ${phone}
-Location: ${location}
-Years of experience: ${yearsExperience}
-Professional summary / notes: ${summary}
-Work experience: ${experience}
-Education: ${education}
-Skills: ${skills}
-Languages: ${languages}
-Certifications: ${certifications}
-
-Output structure:
-${fullName}
-${jobTitle}
-
-CONTACT
-- Email
-- Phone
-- Location
-
-PROFESSIONAL SUMMARY
-
-CORE SKILLS
-
-PROFESSIONAL EXPERIENCE
+EXPERIENCE
+${order.experience || "Experience not provided."}
 
 EDUCATION
+${order.education || "Education not provided."}
 
-CERTIFICATIONS
-(if available)
+SKILLS
+${order.skills || "Skills not provided."}
 
 LANGUAGES
-(if available)
+${order.languages || "Languages not provided."}
+
+CONTACT
+Email: ${order.email || "-"}
+Phone: ${order.phone || "-"}
 `.trim();
 }
 
-function supabaseHeaders(serviceRoleKey) {
-  return {
-    "Content-Type": "application/json",
-    apikey: serviceRoleKey,
-    Authorization: `Bearer ${serviceRoleKey}`,
-  };
-}
+async function rewriteCvWithAI(order, apiKey) {
+  const prompt = `
+You are a professional CV writer.
 
-export async function POST(req) {
-  try {
-    const { orderId } = await req.json();
+Rewrite the following user information into a polished, ATS-friendly CV text.
 
-    if (!orderId) {
-      return NextResponse.json(
-        { ok: false, error: "Missing orderId" },
-        { status: 400 }
-      );
-    }
+Return plain text only.
+Do not use markdown.
+Make it clean, professional, and suitable for job applications.
 
-    const SUPABASE_URL =
-      process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || "";
+User data:
+Full Name: ${order.fullName || ""}
+Job Title: ${order.jobTitle || ""}
+Email: ${order.email || ""}
+Phone: ${order.phone || ""}
+Summary: ${order.summary || ""}
+Experience: ${order.experience || ""}
+Education: ${order.education || ""}
+Skills: ${order.skills || ""}
+Languages: ${order.languages || ""}
+Template: ${order.template || "medical_pro"}
+`;
 
-    const SUPABASE_SERVICE_ROLE_KEY =
-      process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-
-    const OPENAI_API_KEY =
-      process.env.OPENAI_API_KEY || process.env.OPENAI_KEY || "";
-
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !OPENAI_API_KEY) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: `Missing environment variables | hasOpenAIKey=${!!OPENAI_API_KEY} | hasSupabaseUrl=${!!SUPABASE_URL} | hasServiceRoleKey=${!!SUPABASE_SERVICE_ROLE_KEY}`,
-        },
-        { status: 500 }
-      );
-    }
-
-    const orderRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=*`,
-      {
-        method: "GET",
-        headers: supabaseHeaders(SUPABASE_SERVICE_ROLE_KEY),
-      }
-    );
-
-    const orderData = await orderRes.json();
-
-    if (!orderRes.ok) {
-      return NextResponse.json(
-        { ok: false, error: `Failed to fetch order: ${JSON.stringify(orderData)}` },
-        { status: orderRes.status }
-      );
-    }
-
-    const order = Array.isArray(orderData) ? orderData[0] : orderData;
-
-    if (!order) {
-      return NextResponse.json(
-        { ok: false, error: "Order not found" },
-        { status: 404 }
-      );
-    }
-
-    const client = new OpenAI({
-      apiKey: OPENAI_API_KEY,
-    });
-
-    const prompt = buildPrompt(order);
-
-    const completion = await client.chat.completions.create({
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
       model: "gpt-4.1-mini",
       temperature: 0.4,
       messages: [
         {
           role: "system",
           content:
-            "You are an expert executive CV writer. Produce a high-quality ATS-friendly professional CV in plain text.",
+            "You are a professional resume writer. Return plain text only.",
         },
         {
           role: "user",
           content: prompt,
         },
       ],
-    });
+    }),
+  });
 
-    const cvText = completion.choices?.[0]?.message?.content?.trim();
+  const text = await response.text();
 
-    if (!cvText) {
-      return NextResponse.json(
-        { ok: false, error: "OpenAI returned empty content" },
-        { status: 500 }
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error("Invalid JSON returned from OpenAI");
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error?.message || "OpenAI request failed");
+  }
+
+  const content = data?.choices?.[0]?.message?.content || "";
+  if (!content.trim()) {
+    throw new Error("Empty AI response");
+  }
+
+  return content.trim();
+}
+
+export async function POST(req) {
+  try {
+    const body = await req.json();
+
+    const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Missing Supabase environment variables",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
       );
     }
 
-    const updateRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}`,
-      {
-        method: "PATCH",
-        headers: {
-          ...supabaseHeaders(SUPABASE_SERVICE_ROLE_KEY),
-          Prefer: "return=representation",
-        },
-        body: JSON.stringify({
-          result_json: cvText,
+    const orderId = String(body.orderId || "").trim();
+
+    if (!orderId) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Missing orderId",
         }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/orders?id=eq.${orderId}&select=*`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        cache: "no-store",
       }
     );
 
-    const updateData = await updateRes.json();
+    const text = await response.text();
 
-    if (!updateRes.ok) {
-      return NextResponse.json(
-        { ok: false, error: `Failed to save CV: ${JSON.stringify(updateData)}` },
-        { status: updateRes.status }
+    let data;
+    try {
+      data = text ? JSON.parse(text) : [];
+    } catch {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Invalid JSON returned from Supabase",
+          raw: text,
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
       );
     }
 
-    return NextResponse.json({
-      ok: true,
-      orderId,
-      cvText,
-      updated: updateData,
-    });
-  } catch (error) {
-    return NextResponse.json(
+    if (!response.ok) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: data,
+        }),
+        {
+          status: response.status,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const row = Array.isArray(data) ? data[0] : data;
+
+    if (!row) {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Order not found",
+        }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const normalized = {
+      id: row.id || null,
+      fullName: row.fullName || "",
+      jobTitle: row.jobTitle || "",
+      email: row.email || "",
+      phone: row.phone || "",
+      summary: row.summary || "",
+      experience: row.experience || "",
+      education: row.education || "",
+      skills: row.skills || "",
+      languages: row.languages || "",
+      template: row.template || "medical_pro",
+      status: row.status || "",
+      payment_status: row.payment_status || "",
+    };
+
+    let cvText = buildFallbackCv(normalized);
+    let aiUsed = false;
+    let aiError = "";
+
+    if (OPENAI_API_KEY) {
+      try {
+        cvText = await rewriteCvWithAI(normalized, OPENAI_API_KEY);
+        aiUsed = true;
+      } catch (err) {
+        aiError = err?.message || "AI generation failed";
+      }
+    }
+
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        cvText,
+        cv: normalized,
+        aiUsed,
+        aiError,
+      }),
       {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
         ok: false,
         error: error?.message || "Internal server error",
-      },
-      { status: 500 }
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }
+

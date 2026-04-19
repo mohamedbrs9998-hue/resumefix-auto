@@ -19,16 +19,16 @@ export async function POST(req) {
     }
 
     const payload = {
-      fullName: body.fullName ?? "",
-      jobTitle: body.jobTitle ?? "",
-      email: body.email ?? "",
-      phone: body.phone ?? "",
-      summary: body.summary ?? "",
-      experience: body.experience ?? "",
-      education: body.education ?? "",
-      skills: body.skills ?? "",
-      languages: body.languages ?? "",
-      template: body.template ?? "medical_pro",
+      fullName: String(body.fullName || "").trim(),
+      jobTitle: String(body.jobTitle || "").trim(),
+      email: String(body.email || "").trim(),
+      phone: String(body.phone || "").trim(),
+      summary: String(body.summary || "").trim(),
+      experience: String(body.experience || "").trim(),
+      education: String(body.education || "").trim(),
+      skills: String(body.skills || "").trim(),
+      languages: String(body.languages || "").trim(),
+      template: String(body.template || "medical_pro").trim(),
       status: "pending_payment",
       payment_status: "unpaid",
     };
@@ -44,7 +44,24 @@ export async function POST(req) {
       body: JSON.stringify(payload),
     });
 
-    const data = await response.json();
+    const text = await response.text();
+
+    let data;
+    try {
+      data = text ? JSON.parse(text) : [];
+    } catch {
+      return new Response(
+        JSON.stringify({
+          ok: false,
+          error: "Invalid JSON returned from Supabase",
+          raw: text,
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
 
     if (!response.ok) {
       return new Response(
@@ -85,3 +102,4 @@ export async function POST(req) {
     );
   }
 }
+
