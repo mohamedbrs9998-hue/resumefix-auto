@@ -115,7 +115,7 @@ function JobCard({ job }) {
           marginTop: 14,
         }}
       >
-        <Link href={`/jobs/${job.id}`} style={secondaryBtn}>
+        <Link href={`/job?id=${job.id}`} style={secondaryBtn}>
           تفاصيل الوظيفة
         </Link>
 
@@ -462,4 +462,4 @@ const secondaryBtn = {
   background: "#ffffff",
   color: "#0f172a",
 };
-
+احصل على Outlook for Android
