@@ -1,8 +1,103 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const ORDER_KEY = "resumefix_order_id";
+const TEMPLATE_KEY = "resumefix_template";
+
+const i18n = {
+  ar: {
+    dir: "rtl",
+    title: "أنشئ سيرتك الذاتية",
+    subtitle:
+      "أدخل معلوماتك، اختر القالب المناسب، ثم تابع إلى الدفع للحصول على السيرة النهائية.",
+    langAr: "العربية",
+    langEn: "English",
+    fullName: "الاسم الكامل",
+    fullNamePh: "اكتب اسمك الكامل",
+    jobTitle: "المسمى الوظيفي",
+    jobTitlePh: "مثال: محاسب",
+    email: "البريد الإلكتروني",
+    emailPh: "اكتب بريدك الإلكتروني",
+    phone: "رقم الهاتف",
+    phonePh: "اكتب رقم الهاتف",
+    summary: "الملخص المهني",
+    summaryPh: "اكتب ملخصًا مهنيًا قصيرًا عنك",
+    experience: "الخبرة",
+    experiencePh: "اكتب خبراتك العملية",
+    education: "التعليم",
+    educationPh: "اكتب مؤهلاتك التعليمية",
+    skills: "المهارات",
+    skillsPh: "اكتب المهارات",
+    languages: "اللغات",
+    languagesPh: "العربية، الإنجليزية...",
+    chooseTemplate: "اختر قالب السيرة الذاتية",
+    tplClassic: "كلاسيك",
+    tplClassicDesc: "تصميم بسيط ورسمي",
+    tplModern: "مودرن",
+    tplModernDesc: "تصميم عصري ونظيف",
+    tplPro: "احترافي",
+    tplProDesc: "تصميم قوي مناسب لمختلف المجالات",
+    paymentTitle: "الدفع",
+    paymentDesc:
+      "بعد حفظ البيانات سيتم تحويلك إلى صفحة الدفع، ثم يمكنك فتح صفحة النتيجة وتحميل ملف PDF.",
+    savePay: "حفظ والمتابعة إلى الدفع",
+    saving: "جارٍ الحفظ...",
+    backHome: "العودة إلى الرئيسية",
+    saveSuccess: "تم حفظ البيانات بنجاح. جارٍ تحويلك إلى الدفع...",
+    saveFailed: "تعذر حفظ البيانات",
+    badResponse: "حدث خطأ في الاستجابة",
+    saveError: "حدث خطأ أثناء الحفظ",
+  },
+  en: {
+    dir: "ltr",
+    title: "Create Your CV",
+    subtitle:
+      "Enter your information, choose the right template, then continue to payment to get your final CV.",
+    langAr: "العربية",
+    langEn: "English",
+    fullName: "Full Name",
+    fullNamePh: "Write your full name",
+    jobTitle: "Job Title",
+    jobTitlePh: "e.g. Accountant",
+    email: "Email",
+    emailPh: "Write your email",
+    phone: "Phone",
+    phonePh: "Write your phone number",
+    summary: "Professional Summary",
+    summaryPh: "Write a short professional summary",
+    experience: "Experience",
+    experiencePh: "Write your work experience",
+    education: "Education",
+    educationPh: "Write your education background",
+    skills: "Skills",
+    skillsPh: "Write your skills",
+    languages: "Languages",
+    languagesPh: "Arabic, English...",
+    chooseTemplate: "Choose your CV template",
+    tplClassic: "Classic",
+    tplClassicDesc: "Simple and formal design",
+    tplModern: "Modern",
+    tplModernDesc: "Clean and contemporary design",
+    tplPro: "Professional",
+    tplProDesc: "Strong layout suitable for many fields",
+    paymentTitle: "Payment",
+    paymentDesc:
+      "After saving your details, you will be redirected to payment, then you can open the result page and download your PDF.",
+    savePay: "Save & Continue to Payment",
+    saving: "Saving...",
+    backHome: "Back Home",
+    saveSuccess: "Details saved successfully. Redirecting to payment...",
+    saveFailed: "Failed to save details",
+    badResponse: "Invalid server response",
+    saveError: "An error occurred while saving",
+  },
+};
 
 export default function GeneratePage() {
+  const [lang, setLang] = useState("ar");
+  const t = i18n[lang];
+
   const [form, setForm] = useState({
     fullName: "",
     jobTitle: "",
@@ -18,6 +113,18 @@ export default function GeneratePage() {
 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("site_lang");
+    if (saved === "ar" || saved === "en") {
+      setLang(saved);
+    }
+  }, []);
+
+  function changeLang(next) {
+    setLang(next);
+    localStorage.setItem("site_lang", next);
+  }
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -43,7 +150,7 @@ export default function GeneratePage() {
       try {
         data = raw ? JSON.parse(raw) : {};
       } catch {
-        setMessage(raw || "حدث خطأ في الاستجابة");
+        setMessage(raw || t.badResponse);
         setSaving(false);
         return;
       }
@@ -54,25 +161,25 @@ export default function GeneratePage() {
             ? data.error
             : data?.error?.message || JSON.stringify(data?.error || data);
 
-        setMessage(msg || "تعذر حفظ البيانات");
+        setMessage(msg || t.saveFailed);
         setSaving(false);
         return;
       }
 
-      localStorage.setItem("resumefix_order_id", data.orderId);
-      localStorage.setItem("resumefix_template", form.template);
+      localStorage.setItem(ORDER_KEY, data.orderId);
+      localStorage.setItem(TEMPLATE_KEY, form.template);
 
-      setMessage("تم حفظ البيانات بنجاح. جارٍ تحويلك إلى الدفع...");
+      setMessage(t.saveSuccess);
       window.location.href = "https://payhip.com/order?link=J7W4G";
     } catch (error) {
-      setMessage(error?.message || "حدث خطأ أثناء الحفظ");
+      setMessage(error?.message || t.saveError);
       setSaving(false);
     }
   }
 
   return (
     <main
-      dir="rtl"
+      dir={t.dir}
       style={{
         minHeight: "100vh",
         background:
@@ -84,6 +191,36 @@ export default function GeneratePage() {
       <div style={{ maxWidth: 950, margin: "0 auto" }}>
         <div
           style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <div style={badge}>{t.title}</div>
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => changeLang("ar")}
+              style={lang === "ar" ? langActiveBtn : langBtn}
+            >
+              {t.langAr}
+            </button>
+            <button
+              type="button"
+              onClick={() => changeLang("en")}
+              style={lang === "en" ? langActiveBtn : langBtn}
+            >
+              {t.langEn}
+            </button>
+          </div>
+        </div>
+
+        <div
+          style={{
             background: "#ffffff",
             border: "1px solid #e5e7eb",
             borderRadius: 32,
@@ -92,8 +229,6 @@ export default function GeneratePage() {
             marginBottom: 22,
           }}
         >
-          <div style={badge}>إنشاء السيرة الذاتية</div>
-
           <h1
             style={{
               margin: "0 0 12px",
@@ -103,7 +238,7 @@ export default function GeneratePage() {
               color: "#0f172a",
             }}
           >
-            أنشئ سيرتك الذاتية
+            {t.title}
           </h1>
 
           <p
@@ -114,7 +249,7 @@ export default function GeneratePage() {
               lineHeight: 1.9,
             }}
           >
-            أدخل معلوماتك، اختر القالب المناسب، ثم تابع إلى الدفع للحصول على السيرة النهائية.
+            {t.subtitle}
           </p>
         </div>
 
@@ -136,64 +271,64 @@ export default function GeneratePage() {
             }}
           >
             <Field
-              label="الاسم الكامل"
+              label={t.fullName}
               value={form.fullName}
               onChange={(v) => updateField("fullName", v)}
-              placeholder="اكتب اسمك الكامل"
+              placeholder={t.fullNamePh}
             />
             <Field
-              label="المسمى الوظيفي"
+              label={t.jobTitle}
               value={form.jobTitle}
               onChange={(v) => updateField("jobTitle", v)}
-              placeholder="مثال: محاسب"
+              placeholder={t.jobTitlePh}
             />
             <Field
-              label="البريد الإلكتروني"
+              label={t.email}
               value={form.email}
               onChange={(v) => updateField("email", v)}
-              placeholder="اكتب بريدك الإلكتروني"
+              placeholder={t.emailPh}
             />
             <Field
-              label="رقم الهاتف"
+              label={t.phone}
               value={form.phone}
               onChange={(v) => updateField("phone", v)}
-              placeholder="اكتب رقم الهاتف"
+              placeholder={t.phonePh}
             />
           </div>
 
           <TextAreaField
-            label="الملخص المهني"
+            label={t.summary}
             value={form.summary}
             onChange={(v) => updateField("summary", v)}
-            placeholder="اكتب ملخصًا مهنيًا قصيرًا عنك"
+            placeholder={t.summaryPh}
           />
 
           <TextAreaField
-            label="الخبرة"
+            label={t.experience}
             value={form.experience}
             onChange={(v) => updateField("experience", v)}
-            placeholder="اكتب خبراتك العملية"
+            placeholder={t.experiencePh}
           />
 
           <TextAreaField
-            label="التعليم"
+            label={t.education}
             value={form.education}
             onChange={(v) => updateField("education", v)}
-            placeholder="اكتب مؤهلاتك التعليمية"
+            placeholder={t.educationPh}
           />
 
           <TextAreaField
-            label="المهارات"
+            label={t.skills}
             value={form.skills}
             onChange={(v) => updateField("skills", v)}
-            placeholder="اكتب المهارات"
+            placeholder={t.skillsPh}
           />
 
           <TextAreaField
-            label="اللغات"
+            label={t.languages}
             value={form.languages}
             onChange={(v) => updateField("languages", v)}
-            placeholder="العربية، الإنجليزية..."
+            placeholder={t.languagesPh}
           />
 
           <div style={{ marginBottom: 22 }}>
@@ -206,7 +341,7 @@ export default function GeneratePage() {
                 color: "#0f172a",
               }}
             >
-              اختر قالب السيرة الذاتية
+              {t.chooseTemplate}
             </label>
 
             <div
@@ -217,9 +352,9 @@ export default function GeneratePage() {
               }}
             >
               {[
-                { key: "classic", title: "كلاسيك", desc: "تصميم بسيط ورسمي" },
-                { key: "modern", title: "مودرن", desc: "تصميم عصري ونظيف" },
-                { key: "medical_pro", title: "احترافي", desc: "تصميم قوي مناسب لمختلف المجالات" },
+                { key: "classic", title: t.tplClassic, desc: t.tplClassicDesc },
+                { key: "modern", title: t.tplModern, desc: t.tplModernDesc },
+                { key: "medical_pro", title: t.tplPro, desc: t.tplProDesc },
               ].map((template) => {
                 const selected = form.template === template.key;
 
@@ -229,7 +364,7 @@ export default function GeneratePage() {
                     type="button"
                     onClick={() => updateField("template", template.key)}
                     style={{
-                      textAlign: "right",
+                      textAlign: t.dir === "rtl" ? "right" : "left",
                       padding: "18px",
                       borderRadius: 18,
                       border: selected ? "2px solid #60a5fa" : "1px solid #dbeafe",
@@ -267,7 +402,7 @@ export default function GeneratePage() {
                 marginBottom: 8,
               }}
             >
-              الدفع
+              {t.paymentTitle}
             </div>
             <div
               style={{
@@ -275,17 +410,17 @@ export default function GeneratePage() {
                 lineHeight: 1.8,
               }}
             >
-              بعد حفظ البيانات سيتم تحويلك إلى صفحة الدفع، ثم يمكنك فتح صفحة النتيجة وتحميل ملف PDF.
+              {t.paymentDesc}
             </div>
           </div>
 
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
             <button type="submit" disabled={saving} style={primaryButton}>
-              {saving ? "جارٍ الحفظ..." : "حفظ والمتابعة إلى الدفع"}
+              {saving ? t.saving : t.savePay}
             </button>
 
             <a href="/" style={secondaryBtn}>
-              العودة إلى الرئيسية
+              {t.backHome}
             </a>
           </div>
 
@@ -358,7 +493,6 @@ function TextAreaField({ label, value, onChange, placeholder }) {
 
 const badge = {
   display: "inline-block",
-  marginBottom: 14,
   padding: "10px 16px",
   borderRadius: 999,
   background: "#eff6ff",
@@ -405,5 +539,25 @@ const secondaryBtn = {
   border: "1px solid #dbeafe",
   background: "#ffffff",
   color: "#0f172a",
+};
+
+const langBtn = {
+  border: "1px solid #dbeafe",
+  background: "#ffffff",
+  color: "#0f172a",
+  padding: "10px 14px",
+  borderRadius: 12,
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const langActiveBtn = {
+  border: "1px solid #60a5fa",
+  background: "#eff6ff",
+  color: "#2563eb",
+  padding: "10px 14px",
+  borderRadius: 12,
+  fontWeight: 800,
+  cursor: "pointer",
 };
 
