@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 
-const ORDER_KEY = "resumefix_order_id";
-const TEMPLATE_KEY = "resumefix_template";
-
 export default function GeneratePage() {
   const [form, setForm] = useState({
     fullName: "",
@@ -19,7 +16,8 @@ export default function GeneratePage() {
     template: "medical_pro",
   });
 
-  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -27,7 +25,8 @@ export default function GeneratePage() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setLoading(true);
+    setSaving(true);
+    setMessage("");
 
     try {
       const res = await fetch("/api/save-order", {
@@ -44,263 +43,265 @@ export default function GeneratePage() {
       try {
         data = raw ? JSON.parse(raw) : {};
       } catch {
-        alert(raw || "Invalid server response");
-        setLoading(false);
+        setMessage(raw || "حدث خطأ في الاستجابة");
+        setSaving(false);
         return;
       }
 
       if (!res.ok || !data?.ok || !data?.orderId) {
-        const message =
+        const msg =
           typeof data?.error === "string"
             ? data.error
             : data?.error?.message || JSON.stringify(data?.error || data);
 
-        alert(message || "Failed to save your details");
-        setLoading(false);
+        setMessage(msg || "تعذر حفظ البيانات");
+        setSaving(false);
         return;
       }
 
-      localStorage.setItem(ORDER_KEY, data.orderId);
-      localStorage.setItem(TEMPLATE_KEY, form.template);
+      localStorage.setItem("resumefix_order_id", data.orderId);
+      localStorage.setItem("resumefix_template", form.template);
 
+      setMessage("تم حفظ البيانات بنجاح. جارٍ تحويلك إلى الدفع...");
       window.location.href = "https://payhip.com/order?link=J7W4G";
     } catch (error) {
-      const message =
-        typeof error === "string"
-          ? error
-          : error?.message || JSON.stringify(error);
-
-      alert(message || "Something went wrong while saving your details.");
-      setLoading(false);
+      setMessage(error?.message || "حدث خطأ أثناء الحفظ");
+      setSaving(false);
     }
   }
 
   return (
     <main
+      dir="rtl"
       style={{
         minHeight: "100vh",
         background:
-          "radial-gradient(circle at top left, rgba(59,130,246,0.16), transparent 28%), linear-gradient(180deg, #0b1220 0%, #081018 100%)",
-        color: "#f8fafc",
-        padding: "32px 20px 60px",
+          "radial-gradient(circle at top left, rgba(96,165,250,0.12), transparent 20%), linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
+        color: "#0f172a",
+        padding: "36px 20px 70px",
       }}
     >
-      <div style={{ maxWidth: 960, margin: "0 auto" }}>
+      <div style={{ maxWidth: 950, margin: "0 auto" }}>
         <div
           style={{
+            background: "#ffffff",
+            border: "1px solid #e5e7eb",
+            borderRadius: 32,
             padding: 28,
-            borderRadius: 28,
-            border: "1px solid rgba(148,163,184,0.16)",
-            background: "rgba(15,23,42,0.88)",
-            boxShadow: "0 18px 50px rgba(0,0,0,0.28)",
+            boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+            marginBottom: 22,
           }}
         >
-          <div
-            style={{
-              display: "inline-block",
-              marginBottom: 18,
-              padding: "10px 16px",
-              borderRadius: 999,
-              background: "rgba(96,165,250,0.14)",
-              color: "#dbeafe",
-              fontSize: 14,
-              fontWeight: 700,
-            }}
-          >
-            Fill details → Choose template → Pay → Get your CV
-          </div>
+          <div style={badge}>إنشاء السيرة الذاتية</div>
 
           <h1
             style={{
-              margin: "0 0 14px",
-              fontSize: "clamp(34px, 7vw, 56px)",
+              margin: "0 0 12px",
+              fontSize: "clamp(36px, 7vw, 58px)",
               lineHeight: 1.05,
-              fontWeight: 800,
+              fontWeight: 900,
+              color: "#0f172a",
             }}
           >
-            Build Your CV
+            أنشئ سيرتك الذاتية
           </h1>
 
           <p
             style={{
-              margin: "0 0 28px",
-              maxWidth: 760,
-              color: "#cbd5e1",
-              fontSize: "clamp(16px, 2vw, 20px)",
-              lineHeight: 1.7,
+              margin: 0,
+              color: "#475569",
+              fontSize: 18,
+              lineHeight: 1.9,
             }}
           >
-            Enter your information, select the design template you prefer, then
-            continue to payment.
+            أدخل معلوماتك، اختر القالب المناسب، ثم تابع إلى الدفع للحصول على السيرة النهائية.
           </p>
+        </div>
 
-          <form onSubmit={handleSubmit}>
+        <form
+          onSubmit={handleSubmit}
+          style={{
+            background: "#ffffff",
+            border: "1px solid #e5e7eb",
+            borderRadius: 32,
+            padding: 28,
+            boxShadow: "0 20px 60px rgba(15,23,42,0.07)",
+          }}
+        >
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 18,
+            }}
+          >
             <Field
-              label="Full Name"
+              label="الاسم الكامل"
               value={form.fullName}
               onChange={(v) => updateField("fullName", v)}
-              placeholder="Write your full name"
+              placeholder="اكتب اسمك الكامل"
             />
-
             <Field
-              label="Job Title"
+              label="المسمى الوظيفي"
               value={form.jobTitle}
               onChange={(v) => updateField("jobTitle", v)}
-              placeholder="e.g. General Practitioner"
+              placeholder="مثال: محاسب"
             />
-
             <Field
-              label="Email"
+              label="البريد الإلكتروني"
               value={form.email}
               onChange={(v) => updateField("email", v)}
-              placeholder="Write your email"
+              placeholder="اكتب بريدك الإلكتروني"
             />
-
             <Field
-              label="Phone"
+              label="رقم الهاتف"
               value={form.phone}
               onChange={(v) => updateField("phone", v)}
-              placeholder="Write your phone number"
+              placeholder="اكتب رقم الهاتف"
             />
+          </div>
 
-            <TextAreaField
-              label="Professional Summary"
-              value={form.summary}
-              onChange={(v) => updateField("summary", v)}
-              placeholder="Write a short summary about yourself"
-            />
+          <TextAreaField
+            label="الملخص المهني"
+            value={form.summary}
+            onChange={(v) => updateField("summary", v)}
+            placeholder="اكتب ملخصًا مهنيًا قصيرًا عنك"
+          />
 
-            <TextAreaField
-              label="Experience"
-              value={form.experience}
-              onChange={(v) => updateField("experience", v)}
-              placeholder="Write your work experience here..."
-            />
+          <TextAreaField
+            label="الخبرة"
+            value={form.experience}
+            onChange={(v) => updateField("experience", v)}
+            placeholder="اكتب خبراتك العملية"
+          />
 
-            <TextAreaField
-              label="Education"
-              value={form.education}
-              onChange={(v) => updateField("education", v)}
-              placeholder="Write your education here..."
-            />
+          <TextAreaField
+            label="التعليم"
+            value={form.education}
+            onChange={(v) => updateField("education", v)}
+            placeholder="اكتب مؤهلاتك التعليمية"
+          />
 
-            <TextAreaField
-              label="Skills"
-              value={form.skills}
-              onChange={(v) => updateField("skills", v)}
-              placeholder="List your skills here..."
-            />
+          <TextAreaField
+            label="المهارات"
+            value={form.skills}
+            onChange={(v) => updateField("skills", v)}
+            placeholder="اكتب المهارات"
+          />
 
-            <TextAreaField
-              label="Languages"
-              value={form.languages}
-              onChange={(v) => updateField("languages", v)}
-              placeholder="e.g. Arabic, English"
-            />
+          <TextAreaField
+            label="اللغات"
+            value={form.languages}
+            onChange={(v) => updateField("languages", v)}
+            placeholder="العربية، الإنجليزية..."
+          />
 
-            <div style={{ marginBottom: 22 }}>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: 10,
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: "#e2e8f0",
-                }}
-              >
-                Choose Your CV Template
-              </label>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                  gap: 14,
-                }}
-              >
-                {[
-                  {
-                    key: "classic",
-                    title: "Classic",
-                    desc: "Clean and professional layout",
-                  },
-                  {
-                    key: "modern",
-                    title: "Modern",
-                    desc: "Stylish and contemporary design",
-                  },
-                  {
-                    key: "medical_pro",
-                    title: "Medical Pro",
-                    desc: "Best for healthcare and medical CVs",
-                  },
-                ].map((template) => {
-                  const selected = form.template === template.key;
-
-                  return (
-                    <button
-                      key={template.key}
-                      type="button"
-                      onClick={() => updateField("template", template.key)}
-                      style={{
-                        textAlign: "left",
-                        padding: "18px",
-                        borderRadius: 18,
-                        border: selected
-                          ? "2px solid #60a5fa"
-                          : "1px solid rgba(148,163,184,0.18)",
-                        background: selected
-                          ? "rgba(96,165,250,0.12)"
-                          : "#09111d",
-                        color: "#f8fafc",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 17,
-                          fontWeight: 800,
-                          marginBottom: 6,
-                        }}
-                      >
-                        {template.title}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 14,
-                          color: "#94a3b8",
-                          lineHeight: 1.5,
-                        }}
-                      >
-                        {template.desc}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
+          <div style={{ marginBottom: 22 }}>
+            <label
               style={{
-                marginTop: 24,
-                border: "none",
-                borderRadius: 18,
-                padding: "16px 24px",
-                minWidth: 220,
-                fontSize: 18,
-                fontWeight: 800,
-                cursor: loading ? "not-allowed" : "pointer",
-                background: "linear-gradient(135deg, #7dd3fc 0%, #60a5fa 100%)",
-                color: "#081018",
-                opacity: loading ? 0.7 : 1,
+                display: "block",
+                marginBottom: 10,
+                fontSize: 16,
+                fontWeight: 700,
+                color: "#0f172a",
               }}
             >
-              {loading ? "Saving..." : "Continue to Payment"}
+              اختر قالب السيرة الذاتية
+            </label>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: 14,
+              }}
+            >
+              {[
+                { key: "classic", title: "كلاسيك", desc: "تصميم بسيط ورسمي" },
+                { key: "modern", title: "مودرن", desc: "تصميم عصري ونظيف" },
+                { key: "medical_pro", title: "احترافي", desc: "تصميم قوي مناسب لمختلف المجالات" },
+              ].map((template) => {
+                const selected = form.template === template.key;
+
+                return (
+                  <button
+                    key={template.key}
+                    type="button"
+                    onClick={() => updateField("template", template.key)}
+                    style={{
+                      textAlign: "right",
+                      padding: "18px",
+                      borderRadius: 18,
+                      border: selected ? "2px solid #60a5fa" : "1px solid #dbeafe",
+                      background: selected ? "#eff6ff" : "#ffffff",
+                      color: "#0f172a",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 6 }}>
+                      {template.title}
+                    </div>
+                    <div style={{ fontSize: 14, color: "#64748b", lineHeight: 1.5 }}>
+                      {template.desc}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div
+            style={{
+              borderRadius: 22,
+              padding: 18,
+              background: "#f8fbff",
+              border: "1px solid #dbeafe",
+              marginBottom: 18,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 22,
+                fontWeight: 900,
+                color: "#0f172a",
+                marginBottom: 8,
+              }}
+            >
+              الدفع
+            </div>
+            <div
+              style={{
+                color: "#475569",
+                lineHeight: 1.8,
+              }}
+            >
+              بعد حفظ البيانات سيتم تحويلك إلى صفحة الدفع، ثم يمكنك فتح صفحة النتيجة وتحميل ملف PDF.
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <button type="submit" disabled={saving} style={primaryButton}>
+              {saving ? "جارٍ الحفظ..." : "حفظ والمتابعة إلى الدفع"}
             </button>
-          </form>
-        </div>
+
+            <a href="/" style={secondaryBtn}>
+              العودة إلى الرئيسية
+            </a>
+          </div>
+
+          {message ? (
+            <div
+              style={{
+                marginTop: 16,
+                color: "#475569",
+                lineHeight: 1.8,
+                fontSize: 16,
+              }}
+            >
+              {message}
+            </div>
+          ) : null}
+        </form>
       </div>
     </main>
   );
@@ -315,7 +316,7 @@ function Field({ label, value, onChange, placeholder }) {
           marginBottom: 8,
           fontSize: 16,
           fontWeight: 700,
-          color: "#e2e8f0",
+          color: "#0f172a",
         }}
       >
         {label}
@@ -324,17 +325,7 @@ function Field({ label, value, onChange, placeholder }) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{
-          width: "100%",
-          padding: "16px 18px",
-          borderRadius: 16,
-          border: "1px solid rgba(148,163,184,0.18)",
-          background: "#09111d",
-          color: "#f8fafc",
-          fontSize: 16,
-          outline: "none",
-          boxSizing: "border-box",
-        }}
+        style={inputStyle}
       />
     </div>
   );
@@ -349,7 +340,7 @@ function TextAreaField({ label, value, onChange, placeholder }) {
           marginBottom: 8,
           fontSize: 16,
           fontWeight: 700,
-          color: "#e2e8f0",
+          color: "#0f172a",
         }}
       >
         {label}
@@ -359,19 +350,60 @@ function TextAreaField({ label, value, onChange, placeholder }) {
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         rows={5}
-        style={{
-          width: "100%",
-          padding: "16px 18px",
-          borderRadius: 16,
-          border: "1px solid rgba(148,163,184,0.18)",
-          background: "#09111d",
-          color: "#f8fafc",
-          fontSize: 16,
-          outline: "none",
-          boxSizing: "border-box",
-          resize: "vertical",
-        }}
+        style={{ ...inputStyle, resize: "vertical" }}
       />
     </div>
   );
 }
+
+const badge = {
+  display: "inline-block",
+  marginBottom: 14,
+  padding: "10px 16px",
+  borderRadius: 999,
+  background: "#eff6ff",
+  color: "#2563eb",
+  fontSize: 14,
+  fontWeight: 800,
+};
+
+const inputStyle = {
+  width: "100%",
+  padding: "14px 16px",
+  borderRadius: 16,
+  border: "1px solid #dbeafe",
+  background: "#ffffff",
+  color: "#0f172a",
+  fontSize: 16,
+  outline: "none",
+  boxSizing: "border-box",
+};
+
+const primaryButton = {
+  border: "none",
+  borderRadius: 18,
+  padding: "16px 24px",
+  minWidth: 220,
+  fontSize: 18,
+  fontWeight: 900,
+  cursor: "pointer",
+  background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
+  color: "#ffffff",
+  boxShadow: "0 12px 28px rgba(37,99,235,0.20)",
+};
+
+const secondaryBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minWidth: 180,
+  padding: "16px 24px",
+  borderRadius: 18,
+  textDecoration: "none",
+  fontWeight: 800,
+  fontSize: 17,
+  border: "1px solid #dbeafe",
+  background: "#ffffff",
+  color: "#0f172a",
+};
+
