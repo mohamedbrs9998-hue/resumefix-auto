@@ -15,6 +15,7 @@ function isWhatsAppJob(job) {
 
 function JobCard({ job }) {
   const whatsapp = isWhatsAppJob(job);
+  const [open, setOpen] = useState(false);
 
   return (
     <div
@@ -78,34 +79,6 @@ function JobCard({ job }) {
         </div>
       ) : null}
 
-      {job.requirements ? (
-        <div
-          style={{
-            marginBottom: 14,
-            color: "#475569",
-            fontSize: 15,
-            lineHeight: 1.9,
-          }}
-        >
-          <strong style={{ color: "#0f172a" }}>المتطلبات:</strong>{" "}
-          {job.requirements}
-        </div>
-      ) : null}
-
-      {job.license_required ? (
-        <div
-          style={{
-            marginBottom: 16,
-            color: "#475569",
-            fontSize: 15,
-            lineHeight: 1.9,
-          }}
-        >
-          <strong style={{ color: "#0f172a" }}>الترخيص:</strong>{" "}
-          {job.license_required}
-        </div>
-      ) : null}
-
       <div
         style={{
           display: "flex",
@@ -115,9 +88,13 @@ function JobCard({ job }) {
           marginTop: 14,
         }}
       >
-        <Link href={`/job?id=${job.id}`} style={secondaryBtn}>
-          تفاصيل الوظيفة
-        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          style={secondaryButton}
+        >
+          {open ? "إخفاء التفاصيل" : "تفاصيل الوظيفة"}
+        </button>
 
         {job.source_url ? (
           <a
@@ -141,6 +118,93 @@ function JobCard({ job }) {
           </span>
         ) : null}
       </div>
+
+      {open ? (
+        <div
+          style={{
+            marginTop: 18,
+            borderTop: "1px solid #e5e7eb",
+            paddingTop: 18,
+          }}
+        >
+          {job.requirements ? (
+            <div
+              style={{
+                marginBottom: 14,
+                color: "#475569",
+                fontSize: 15,
+                lineHeight: 1.9,
+              }}
+            >
+              <strong style={{ color: "#0f172a" }}>المتطلبات:</strong>{" "}
+              {job.requirements}
+            </div>
+          ) : null}
+
+          {job.license_required ? (
+            <div
+              style={{
+                marginBottom: 14,
+                color: "#475569",
+                fontSize: 15,
+                lineHeight: 1.9,
+              }}
+            >
+              <strong style={{ color: "#0f172a" }}>الترخيص:</strong>{" "}
+              {job.license_required}
+            </div>
+          ) : null}
+
+          <div
+            style={{
+              borderRadius: 20,
+              padding: 18,
+              background: "#eff6ff",
+              border: "1px solid #bfdbfe",
+              marginTop: 14,
+            }}
+          >
+            <div
+              style={{
+                fontSize: 22,
+                fontWeight: 900,
+                color: "#0f172a",
+                marginBottom: 8,
+              }}
+            >
+              هل تريد التقديم على هذه الوظيفة؟
+            </div>
+
+            <div
+              style={{
+                color: "#334155",
+                lineHeight: 1.8,
+                fontSize: 16,
+                marginBottom: 16,
+              }}
+            >
+              أنشئ سيرة ذاتية مناسبة لهذه الوظيفة أولًا، ثم قدّم مباشرة.
+            </div>
+
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <Link href={`/generate?jobId=${job.id}`} style={primaryBtn}>
+                أنشئ CV لهذه الوظيفة
+              </Link>
+
+              {job.source_url ? (
+                <a
+                  href={job.source_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={whatsapp ? whatsappBtn : secondaryBtn}
+                >
+                  {whatsapp ? "التقديم عبر واتساب" : "رابط التقديم"}
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -281,7 +345,7 @@ export default function JobsPage() {
             <div style={badge}>الوظائف</div>
             <h1 style={titleStyle}>الوظائف المتاحة</h1>
             <p style={sectionText}>
-              تصفح الوظائف وادخل إلى صفحة كل وظيفة داخل موقعك أولًا.
+              تصفح الوظائف واطلع على التفاصيل داخل نفس الصفحة.
             </p>
           </div>
 
@@ -462,4 +526,28 @@ const secondaryBtn = {
   background: "#ffffff",
   color: "#0f172a",
 };
-احصل على Outlook for Android
+
+const secondaryButton = {
+  border: "1px solid #dbeafe",
+  background: "#ffffff",
+  color: "#0f172a",
+  padding: "12px 16px",
+  borderRadius: 14,
+  fontWeight: 800,
+  cursor: "pointer",
+};
+
+const primaryBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minWidth: 220,
+  padding: "16px 24px",
+  borderRadius: 18,
+  textDecoration: "none",
+  fontWeight: 900,
+  fontSize: 17,
+  background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
+  color: "#ffffff",
+};
+
