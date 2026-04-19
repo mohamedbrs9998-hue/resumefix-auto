@@ -3,6 +3,63 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
+const i18n = {
+  ar: {
+    dir: "rtl",
+    title: "الوظائف المتاحة",
+    subtitle: "تصفح الوظائف واطلع على التفاصيل داخل نفس الصفحة.",
+    backHome: "الصفحة الرئيسية",
+    langAr: "العربية",
+    langEn: "English",
+    search: "ابحث بعنوان الوظيفة أو الشركة",
+    allLocations: "كل الأماكن",
+    allSpecialties: "كل التخصصات",
+    allTypes: "كل الأنواع",
+    loading: "جارٍ تحميل الوظائف...",
+    noJobs: "لا توجد وظائف حاليًا.",
+    errorPrefix: "خطأ في تحميل الوظائف:",
+    detailsBtn: "تفاصيل الوظيفة",
+    hideDetailsBtn: "إخفاء التفاصيل",
+    applyWhatsapp: "التقديم عبر واتساب",
+    viewJob: "عرض الوظيفة",
+    source: "المصدر",
+    requirements: "المتطلبات",
+    license: "الترخيص",
+    ctaTitle: "هل تريد التقديم على هذه الوظيفة؟",
+    ctaDesc: "أنشئ سيرة ذاتية مناسبة لهذه الوظيفة أولًا، ثم قدّم مباشرة.",
+    createCv: "أنشئ CV لهذه الوظيفة",
+    applicationLink: "رابط التقديم",
+    jobsBadge: "الوظائف",
+  },
+  en: {
+    dir: "ltr",
+    title: "Available Jobs",
+    subtitle: "Browse jobs and view details inside the same page.",
+    backHome: "Back Home",
+    langAr: "العربية",
+    langEn: "English",
+    search: "Search by title or company",
+    allLocations: "All Locations",
+    allSpecialties: "All Specialties",
+    allTypes: "All Types",
+    loading: "Loading jobs...",
+    noJobs: "No jobs available right now.",
+    errorPrefix: "Error loading jobs:",
+    detailsBtn: "Job Details",
+    hideDetailsBtn: "Hide Details",
+    applyWhatsapp: "Apply on WhatsApp",
+    viewJob: "View Job",
+    source: "Source",
+    requirements: "Requirements",
+    license: "License",
+    ctaTitle: "Want to apply for this job?",
+    ctaDesc: "Create a CV tailored for this job first, then apply directly.",
+    createCv: "Create CV for this Job",
+    applicationLink: "Application Link",
+    jobsBadge: "JOBS",
+  },
+};
+
 function isWhatsAppJob(job) {
   const url = job?.source_url || "";
   const source = job?.source_name || "";
@@ -13,7 +70,7 @@ function isWhatsAppJob(job) {
   );
 }
 
-function JobCard({ job }) {
+function JobCard({ job, t }) {
   const whatsapp = isWhatsAppJob(job);
   const [open, setOpen] = useState(false);
 
@@ -36,7 +93,7 @@ function JobCard({ job }) {
           lineHeight: 1.3,
         }}
       >
-        {job.title || "وظيفة"}
+        {job.title || "Job"}
       </div>
 
       <div
@@ -93,7 +150,7 @@ function JobCard({ job }) {
           onClick={() => setOpen(!open)}
           style={secondaryButton}
         >
-          {open ? "إخفاء التفاصيل" : "تفاصيل الوظيفة"}
+          {open ? t.hideDetailsBtn : t.detailsBtn}
         </button>
 
         {job.source_url ? (
@@ -103,7 +160,7 @@ function JobCard({ job }) {
             rel="noreferrer"
             style={whatsapp ? whatsappBtn : primarySmallBtn}
           >
-            {whatsapp ? "التقديم عبر واتساب" : "عرض الوظيفة"}
+            {whatsapp ? t.applyWhatsapp : t.viewJob}
           </a>
         ) : null}
 
@@ -114,7 +171,7 @@ function JobCard({ job }) {
               fontSize: 14,
             }}
           >
-            المصدر: {job.source_name}
+            {t.source}: {job.source_name}
           </span>
         ) : null}
       </div>
@@ -136,7 +193,7 @@ function JobCard({ job }) {
                 lineHeight: 1.9,
               }}
             >
-              <strong style={{ color: "#0f172a" }}>المتطلبات:</strong>{" "}
+              <strong style={{ color: "#0f172a" }}>{t.requirements}:</strong>{" "}
               {job.requirements}
             </div>
           ) : null}
@@ -150,7 +207,7 @@ function JobCard({ job }) {
                 lineHeight: 1.9,
               }}
             >
-              <strong style={{ color: "#0f172a" }}>الترخيص:</strong>{" "}
+              <strong style={{ color: "#0f172a" }}>{t.license}:</strong>{" "}
               {job.license_required}
             </div>
           ) : null}
@@ -172,7 +229,7 @@ function JobCard({ job }) {
                 marginBottom: 8,
               }}
             >
-              هل تريد التقديم على هذه الوظيفة؟
+              {t.ctaTitle}
             </div>
 
             <div
@@ -183,12 +240,12 @@ function JobCard({ job }) {
                 marginBottom: 16,
               }}
             >
-              أنشئ سيرة ذاتية مناسبة لهذه الوظيفة أولًا، ثم قدّم مباشرة.
+              {t.ctaDesc}
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href={`/generate?jobId=${job.id}`} style={primaryBtn}>
-                أنشئ CV لهذه الوظيفة
+                {t.createCv}
               </Link>
 
               {job.source_url ? (
@@ -198,7 +255,7 @@ function JobCard({ job }) {
                   rel="noreferrer"
                   style={whatsapp ? whatsappBtn : secondaryBtn}
                 >
-                  {whatsapp ? "التقديم عبر واتساب" : "رابط التقديم"}
+                  {whatsapp ? t.applyWhatsapp : t.applicationLink}
                 </a>
               ) : null}
             </div>
@@ -228,6 +285,9 @@ function InfoBox({ text, error = false }) {
 }
 
 export default function JobsPage() {
+  const [lang, setLang] = useState("ar");
+  const t = i18n[lang];
+
   const [jobs, setJobs] = useState([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -236,6 +296,18 @@ export default function JobsPage() {
   const [locationFilter, setLocationFilter] = useState("all");
   const [specialtyFilter, setSpecialtyFilter] = useState("all");
   const [jobTypeFilter, setJobTypeFilter] = useState("all");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("site_lang");
+    if (saved === "ar" || saved === "en") {
+      setLang(saved);
+    }
+  }, []);
+
+  function changeLang(next) {
+    setLang(next);
+    localStorage.setItem("site_lang", next);
+  }
 
   useEffect(() => {
     async function loadJobs() {
@@ -250,7 +322,7 @@ export default function JobsPage() {
         try {
           data = raw ? JSON.parse(raw) : {};
         } catch {
-          setError(raw || "استجابة الوظائف غير صحيحة");
+          setError(raw || "Invalid jobs response");
           setLoading(false);
           return;
         }
@@ -268,7 +340,7 @@ export default function JobsPage() {
         setJobs(Array.isArray(data.jobs) ? data.jobs : []);
         setLoading(false);
       } catch (err) {
-        setError(err?.message || "تعذر تحميل الوظائف");
+        setError(err?.message || "Failed to load jobs");
         setLoading(false);
       }
     }
@@ -321,7 +393,7 @@ export default function JobsPage() {
 
   return (
     <main
-      dir="rtl"
+      dir={t.dir}
       style={{
         minHeight: "100vh",
         background:
@@ -342,17 +414,30 @@ export default function JobsPage() {
           }}
         >
           <div>
-            <div style={badge}>الوظائف</div>
-            <h1 style={titleStyle}>الوظائف المتاحة</h1>
-            <p style={sectionText}>
-              تصفح الوظائف واطلع على التفاصيل داخل نفس الصفحة.
-            </p>
+            <div style={badge}>{t.jobsBadge}</div>
+            <h1 style={titleStyle}>{t.title}</h1>
+            <p style={sectionText}>{t.subtitle}</p>
           </div>
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <Link href="/" style={secondaryBtn}>
-              الصفحة الرئيسية
+              {t.backHome}
             </Link>
+
+            <button
+              type="button"
+              onClick={() => changeLang("ar")}
+              style={lang === "ar" ? langActiveBtn : langBtn}
+            >
+              {t.langAr}
+            </button>
+            <button
+              type="button"
+              onClick={() => changeLang("en")}
+              style={lang === "en" ? langActiveBtn : langBtn}
+            >
+              {t.langEn}
+            </button>
           </div>
         </div>
 
@@ -376,7 +461,7 @@ export default function JobsPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="ابحث بعنوان الوظيفة أو الشركة"
+              placeholder={t.search}
               style={inputStyle}
             />
 
@@ -387,7 +472,7 @@ export default function JobsPage() {
             >
               {locations.map((item) => (
                 <option key={item} value={item}>
-                  {item === "all" ? "كل الأماكن" : item}
+                  {item === "all" ? t.allLocations : item}
                 </option>
               ))}
             </select>
@@ -399,7 +484,7 @@ export default function JobsPage() {
             >
               {specialties.map((item) => (
                 <option key={item} value={item}>
-                  {item === "all" ? "كل التخصصات" : item}
+                  {item === "all" ? t.allSpecialties : item}
                 </option>
               ))}
             </select>
@@ -411,18 +496,18 @@ export default function JobsPage() {
             >
               {jobTypes.map((item) => (
                 <option key={item} value={item}>
-                  {item === "all" ? "كل الأنواع" : item}
+                  {item === "all" ? t.allTypes : item}
                 </option>
               ))}
             </select>
           </div>
 
           {loading ? (
-            <InfoBox text="جارٍ تحميل الوظائف..." />
+            <InfoBox text={t.loading} />
           ) : error ? (
-            <InfoBox text={`خطأ في تحميل الوظائف: ${error}`} error />
+            <InfoBox text={`${t.errorPrefix} ${error}`} error />
           ) : filteredJobs.length === 0 ? (
-            <InfoBox text="لا توجد وظائف حاليًا." />
+            <InfoBox text={t.noJobs} />
           ) : (
             <div
               style={{
@@ -432,7 +517,7 @@ export default function JobsPage() {
               }}
             >
               {filteredJobs.map((job) => (
-                <JobCard key={job.id} job={job} />
+                <JobCard key={job.id} job={job} t={t} />
               ))}
             </div>
           )}
@@ -549,5 +634,25 @@ const primaryBtn = {
   fontSize: 17,
   background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
   color: "#ffffff",
+};
+
+const langBtn = {
+  border: "1px solid #dbeafe",
+  background: "#ffffff",
+  color: "#0f172a",
+  padding: "10px 14px",
+  borderRadius: 12,
+  fontWeight: 700,
+  cursor: "pointer",
+};
+
+const langActiveBtn = {
+  border: "1px solid #60a5fa",
+  background: "#eff6ff",
+  color: "#2563eb",
+  padding: "10px 14px",
+  borderRadius: 12,
+  fontWeight: 800,
+  cursor: "pointer",
 };
 
