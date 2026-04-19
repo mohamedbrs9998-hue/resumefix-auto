@@ -17,7 +17,6 @@ const i18n = {
     langEn: "English",
     loading: "جارٍ تحميل النتيجة...",
     noData: "لا توجد بيانات محفوظة لعرض النتيجة.",
-    missingOrder: "لم يتم العثور على رقم الطلب.",
     backHome: "العودة إلى الرئيسية",
     backGenerate: "العودة إلى إنشاء السيرة",
     downloadPdf: "تحميل PDF",
@@ -29,9 +28,10 @@ const i18n = {
     skills: "المهارات",
     languages: "اللغات",
     contact: "التواصل",
-    tailored: "سيرة مخصصة لوظيفة محفوظة",
+    tailored: "سيرة ذاتية مخصصة لوظيفة محفوظة",
     previewOnly: "هذه النسخة النهائية الجاهزة للطباعة أو الحفظ بصيغة PDF.",
     noPhoto: "صورة",
+    present: "حتى الآن",
   },
   en: {
     dir: "ltr",
@@ -42,7 +42,6 @@ const i18n = {
     langEn: "English",
     loading: "Loading result...",
     noData: "No saved data found to display the result.",
-    missingOrder: "No order ID was found.",
     backHome: "Back Home",
     backGenerate: "Back to CV Builder",
     downloadPdf: "Download PDF",
@@ -54,27 +53,48 @@ const i18n = {
     skills: "Skills",
     languages: "Languages",
     contact: "Contact",
-    tailored: "CV tailored for a saved job",
+    tailored: "CV tailored for a saved role",
     previewOnly: "This is the final print-ready version of your CV.",
     noPhoto: "Photo",
+    present: "Present",
   },
 };
 
-function SectionTitle({ children }) {
-  return (
-    <div
-      style={{
-        fontSize: 13,
-        fontWeight: 800,
-        color: "#2563eb",
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        marginBottom: 10,
-      }}
-    >
-      {children}
-    </div>
-  );
+function formatName(name) {
+  return String(name || "")
+    .replace(/\b(mrcpch|rcpch|mbbs|md|dr\.?|doctor|candidate|die)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function formatRole(jobTitle) {
+  return String(jobTitle || "").trim();
+}
+
+function formatSubtitle(jobTitle, lang) {
+  const value = String(jobTitle || "").toLowerCase();
+
+  if (value.includes("general practitioner") && value.includes("pediatric")) {
+    return lang === "ar"
+      ? "مرخص DOH | مرشح MRCPCH"
+      : "DOH Licensed | MRCPCH Candidate";
+  }
+
+  if (value.includes("general practitioner")) {
+    return lang === "ar"
+      ? "ممارس طبي مرخص"
+      : "Licensed Medical Professional";
+  }
+
+  if (value.includes("pediatric")) {
+    return lang === "ar"
+      ? "متخصص في طب الأطفال"
+      : "Pediatrics Professional";
+  }
+
+  return lang === "ar"
+    ? "سيرة ذاتية احترافية"
+    : "Professional Curriculum Vitae";
 }
 
 function splitList(value, limit = 8) {
@@ -87,8 +107,8 @@ function splitList(value, limit = 8) {
 
 function createPlainText(t, data) {
   return `
-${data.fullName || ""}
-${data.jobTitle || ""}
+${formatName(data.fullName || "")}
+${formatRole(data.jobTitle || "")}
 
 ${t.profile}
 ${data.summary || ""}
@@ -109,6 +129,23 @@ ${t.contact}
 ${data.email || ""}
 ${data.phone || ""}
 `.trim();
+}
+
+function SectionTitle({ children }) {
+  return (
+    <div
+      style={{
+        fontSize: 13,
+        fontWeight: 800,
+        color: "#2563eb",
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        marginBottom: 10,
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 function Toolbar({ t, lang, setLang, onDownload, onCopy, copyMsg }) {
@@ -159,76 +196,7 @@ function Toolbar({ t, lang, setLang, onDownload, onCopy, copyMsg }) {
   );
 }
 
-function StandardTemplate({ t, data, photoPreview, hasJob }) {
-  const skills = splitList(data.skills, 8);
-
-  return (
-    <div className="cv-sheet" style={styles.sheet}>
-      <div style={styles.standardHeader}>
-        <div style={{ flex: 1 }}>
-          {hasJob ? <div style={styles.jobHint}>{t.tailored}</div> : null}
-          <div className="cv-name" style={styles.name}>{data.fullName || "Your Name"}</div>
-          <div className="cv-role" style={styles.role}>{data.jobTitle || "Job Title"}</div>
-          <div style={styles.contactRow}>
-            <span>{data.email || "email@example.com"}</span>
-            <span>{data.phone || "+971..."}</span>
-          </div>
-        </div>
-
-        <div style={styles.photoWrap}>
-          {photoPreview ? (
-            <img src={photoPreview} alt="profile" className="cv-photo" style={styles.photo} />
-          ) : (
-            <div style={styles.photoPlaceholder}>{t.noPhoto}</div>
-          )}
-        </div>
-      </div>
-
-      <div className="cv-section" style={styles.section}>
-        <SectionTitle>{t.profile}</SectionTitle>
-        <div className="cv-text" style={styles.paragraph}>
-          {data.summary || "Professional summary will appear here."}
-        </div>
-      </div>
-
-      <div className="cv-section" style={styles.section}>
-        <SectionTitle>{t.work}</SectionTitle>
-        <div className="cv-text" style={styles.paragraph}>
-          {data.experience || "Work experience will appear here."}
-        </div>
-      </div>
-
-      <div className="cv-section" style={styles.section}>
-        <SectionTitle>{t.education}</SectionTitle>
-        <div className="cv-text" style={styles.paragraph}>
-          {data.education || "Education details will appear here."}
-        </div>
-      </div>
-
-      <div className="cv-section" style={styles.section}>
-        <SectionTitle>{t.skills}</SectionTitle>
-        <div style={styles.skillRow}>
-          {(skills.length ? skills : ["Communication", "Leadership", "Planning"]).map(
-            (item, idx) => (
-              <span key={idx} className="cv-chip" style={styles.skillChip}>
-                {item}
-              </span>
-            )
-          )}
-        </div>
-      </div>
-
-      <div className="cv-section" style={styles.section}>
-        <SectionTitle>{t.languages}</SectionTitle>
-        <div className="cv-text" style={styles.paragraph}>
-          {data.languages || "Arabic, English"}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SidebarTemplate({ t, data, photoPreview, hasJob }) {
+function SidebarTemplate({ t, data, photoPreview, hasJob, lang }) {
   const skills = splitList(data.skills, 6);
   const languages = splitList(data.languages, 5);
 
@@ -243,8 +211,17 @@ function SidebarTemplate({ t, data, photoPreview, hasJob }) {
           )}
         </div>
 
-        <div className="cv-name" style={styles.sidebarName}>{data.fullName || "Your Name"}</div>
-        <div className="cv-role" style={styles.sidebarRole}>{data.jobTitle || "Job Title"}</div>
+        <div className="cv-name" style={styles.sidebarName}>
+          {formatName(data.fullName) || "Your Name"}
+        </div>
+
+        <div className="cv-role" style={styles.sidebarRole}>
+          {formatRole(data.jobTitle) || "General Practitioner | Pediatrics"}
+        </div>
+
+        <div style={styles.sidebarSubtitleLine}>
+          {formatSubtitle(data.jobTitle, lang)}
+        </div>
 
         <div className="cv-section" style={{ marginTop: 22 }}>
           <SectionTitle>{t.contact}</SectionTitle>
@@ -255,7 +232,7 @@ function SidebarTemplate({ t, data, photoPreview, hasJob }) {
         <div className="cv-section" style={{ marginTop: 22 }}>
           <SectionTitle>{t.skills}</SectionTitle>
           <div style={{ display: "grid", gap: 6 }}>
-            {(skills.length ? skills : ["Skill 1", "Skill 2", "Skill 3"]).map(
+            {(skills.length ? skills : ["Communication", "Leadership", "Planning"]).map(
               (item, idx) => (
                 <div key={idx} style={styles.asideText}>• {item}</div>
               )
@@ -280,23 +257,147 @@ function SidebarTemplate({ t, data, photoPreview, hasJob }) {
 
         <div className="cv-section" style={styles.section}>
           <SectionTitle>{t.profile}</SectionTitle>
-          <div className="cv-text" style={styles.paragraph}>
-            {data.summary || "Professional summary will appear here."}
+          <div style={styles.profileCard}>
+            <div className="cv-text" style={styles.paragraphStrong}>
+              {data.summary || "Professional summary will appear here."}
+            </div>
           </div>
         </div>
 
         <div className="cv-section" style={styles.section}>
           <SectionTitle>{t.work}</SectionTitle>
-          <div className="cv-text" style={styles.paragraph}>
-            {data.experience || "Work experience will appear here."}
+          <div style={styles.timelineCard}>
+            <div style={styles.timelineLine} />
+            <div style={styles.timelineContent}>
+              <div style={styles.timelineItem}>
+                <div style={styles.timelineDot} />
+                <div style={styles.timelineBody}>
+                  <div style={styles.timelineTopRow}>
+                    <div className="cv-role" style={styles.timelineRole}>
+                      {formatRole(data.jobTitle) || "Professional Role"}
+                    </div>
+                    <div style={styles.timelineDate}>
+                      2022 — {t.present}
+                    </div>
+                  </div>
+                  <div className="cv-text" style={styles.paragraph}>
+                    {data.experience || "Work experience will appear here."}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="cv-section" style={styles.section}>
           <SectionTitle>{t.education}</SectionTitle>
+          <div style={styles.cleanCard}>
+            <div className="cv-text" style={styles.paragraph}>
+              {data.education || "Education details will appear here."}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StandardTemplate({ t, data, photoPreview, hasJob, lang }) {
+  const skills = splitList(data.skills, 8);
+
+  return (
+    <div className="cv-sheet" style={styles.sheet}>
+      <div style={styles.standardHeader}>
+        <div style={{ flex: 1 }}>
+          {hasJob ? <div style={styles.jobHint}>{t.tailored}</div> : null}
+
+          <div className="cv-name" style={styles.name}>
+            {formatName(data.fullName) || "Your Name"}
+          </div>
+
+          <div className="cv-role" style={styles.role}>
+            {formatRole(data.jobTitle) || "General Practitioner | Pediatrics"}
+          </div>
+
+          <div style={styles.subtitleLine}>
+            {formatSubtitle(data.jobTitle, lang)}
+          </div>
+
+          <div style={styles.contactRow}>
+            <span>{data.email || "email@example.com"}</span>
+            <span>{data.phone || "+971..."}</span>
+          </div>
+        </div>
+
+        <div style={styles.photoWrap}>
+          {photoPreview ? (
+            <img src={photoPreview} alt="profile" className="cv-photo" style={styles.photo} />
+          ) : (
+            <div style={styles.photoPlaceholder}>{t.noPhoto}</div>
+          )}
+        </div>
+      </div>
+
+      <div className="cv-section" style={styles.section}>
+        <SectionTitle>{t.profile}</SectionTitle>
+        <div style={styles.profileCard}>
+          <div className="cv-text" style={styles.paragraphStrong}>
+            {data.summary || "Professional summary will appear here."}
+          </div>
+        </div>
+      </div>
+
+      <div className="cv-section" style={styles.section}>
+        <SectionTitle>{t.work}</SectionTitle>
+        <div style={styles.timelineCard}>
+          <div style={styles.timelineLine} />
+          <div style={styles.timelineContent}>
+            <div style={styles.timelineItem}>
+              <div style={styles.timelineDot} />
+              <div style={styles.timelineBody}>
+                <div style={styles.timelineTopRow}>
+                  <div className="cv-role" style={styles.timelineRole}>
+                    {formatRole(data.jobTitle) || "Professional Role"}
+                  </div>
+                  <div style={styles.timelineDate}>
+                    2022 — {t.present}
+                  </div>
+                </div>
+                <div className="cv-text" style={styles.paragraph}>
+                  {data.experience || "Work experience will appear here."}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="cv-section" style={styles.section}>
+        <SectionTitle>{t.education}</SectionTitle>
+        <div style={styles.cleanCard}>
           <div className="cv-text" style={styles.paragraph}>
             {data.education || "Education details will appear here."}
           </div>
+        </div>
+      </div>
+
+      <div className="cv-section" style={styles.section}>
+        <SectionTitle>{t.skills}</SectionTitle>
+        <div style={styles.skillRow}>
+          {(skills.length ? skills : ["Communication", "Leadership", "Planning"]).map(
+            (item, idx) => (
+              <span key={idx} className="cv-chip" style={styles.skillChip}>
+                {item}
+              </span>
+            )
+          )}
+        </div>
+      </div>
+
+      <div className="cv-section" style={styles.section}>
+        <SectionTitle>{t.languages}</SectionTitle>
+        <div className="cv-text" style={styles.paragraph}>
+          {data.languages || "Arabic, English"}
         </div>
       </div>
     </div>
@@ -405,6 +506,7 @@ export default function ResultPage() {
         data={data || {}}
         photoPreview={photoPreview}
         hasJob={hasJob}
+        lang={lang}
       />
     ) : (
       <StandardTemplate
@@ -412,6 +514,7 @@ export default function ResultPage() {
         data={data || {}}
         photoPreview={photoPreview}
         hasJob={hasJob}
+        lang={lang}
       />
     );
 
@@ -702,7 +805,9 @@ const styles = {
     justifyContent: "space-between",
     gap: 16,
     alignItems: "flex-start",
-    marginBottom: 20,
+    marginBottom: 22,
+    paddingBottom: 18,
+    borderBottom: "1px solid #e5e7eb",
   },
   photoWrap: {
     width: 110,
@@ -729,16 +834,24 @@ const styles = {
     background: "#eff6ff",
   },
   name: {
-    fontSize: 36,
+    fontSize: 38,
     fontWeight: 900,
     color: "#0f172a",
-    lineHeight: 1.02,
-    marginBottom: 6,
+    lineHeight: 1,
+    marginBottom: 8,
+    letterSpacing: "-0.03em",
   },
   role: {
-    fontSize: 18,
+    fontSize: 20,
     color: "#2563eb",
-    fontWeight: 700,
+    fontWeight: 800,
+    marginBottom: 8,
+    lineHeight: 1.2,
+  },
+  subtitleLine: {
+    fontSize: 14,
+    color: "#64748b",
+    fontWeight: 600,
     marginBottom: 12,
   },
   contactRow: {
@@ -749,13 +862,92 @@ const styles = {
     fontSize: 14,
   },
   section: {
-    marginTop: 18,
+    marginTop: 20,
   },
   paragraph: {
     color: "#475569",
     lineHeight: 1.85,
     fontSize: 15,
     whiteSpace: "pre-wrap",
+  },
+  paragraphStrong: {
+    color: "#334155",
+    lineHeight: 1.85,
+    fontSize: 15.5,
+    whiteSpace: "pre-wrap",
+    fontWeight: 500,
+  },
+  profileCard: {
+    borderRadius: 18,
+    padding: 18,
+    background: "linear-gradient(180deg, #ffffff 0%, #f8fbff 100%)",
+    border: "1px solid #dbeafe",
+  },
+  timelineCard: {
+    position: "relative",
+    borderRadius: 18,
+    padding: "10px 0 0 0",
+  },
+  timelineLine: {
+    position: "absolute",
+    top: 0,
+    bottom: 0,
+    width: 2,
+    background: "#dbeafe",
+    insetInlineStart: "10px",
+  },
+  timelineContent: {
+    position: "relative",
+  },
+  timelineItem: {
+    position: "relative",
+    display: "flex",
+    gap: 16,
+    alignItems: "flex-start",
+    paddingInlineStart: 0,
+  },
+  timelineDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 999,
+    background: "#2563eb",
+    marginTop: 10,
+    marginInlineStart: 5,
+    flexShrink: 0,
+    boxShadow: "0 0 0 4px #eff6ff",
+  },
+  timelineBody: {
+    flex: 1,
+    background: "#ffffff",
+    border: "1px solid #e5e7eb",
+    borderRadius: 18,
+    padding: 16,
+    boxShadow: "0 8px 20px rgba(15,23,42,0.04)",
+  },
+  timelineTopRow: {
+    display: "flex",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+    marginBottom: 8,
+  },
+  timelineRole: {
+    fontSize: 18,
+    color: "#0f172a",
+    fontWeight: 800,
+    lineHeight: 1.2,
+  },
+  timelineDate: {
+    color: "#64748b",
+    fontSize: 13,
+    fontWeight: 700,
+  },
+  cleanCard: {
+    borderRadius: 18,
+    padding: 16,
+    background: "#ffffff",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 8px 20px rgba(15,23,42,0.04)",
   },
   skillRow: {
     display: "flex",
@@ -771,7 +963,7 @@ const styles = {
     fontWeight: 700,
   },
   sidebarAside: {
-    background: "linear-gradient(180deg, #1e3a8a 0%, #2563eb 100%)",
+    background: "linear-gradient(180deg, #0f2f6b 0%, #2563eb 100%)",
     color: "#ffffff",
     padding: 24,
   },
@@ -798,17 +990,25 @@ const styles = {
     fontWeight: 700,
   },
   sidebarName: {
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: 900,
     color: "#ffffff",
-    lineHeight: 1.05,
-    marginBottom: 6,
+    lineHeight: 1,
+    marginBottom: 8,
+    letterSpacing: "-0.03em",
   },
   sidebarRole: {
-    fontSize: 17,
+    fontSize: 18,
     color: "#dbeafe",
-    fontWeight: 700,
-    marginBottom: 10,
+    fontWeight: 800,
+    marginBottom: 8,
+    lineHeight: 1.2,
+  },
+  sidebarSubtitleLine: {
+    fontSize: 13,
+    color: "#dbeafe",
+    fontWeight: 600,
+    marginBottom: 12,
   },
   asideText: {
     color: "rgba(255,255,255,0.92)",
