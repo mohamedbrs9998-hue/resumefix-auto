@@ -17,6 +17,7 @@ const i18n = {
     langEn: "English",
     loading: "جارٍ تحميل النتيجة...",
     noData: "لا توجد بيانات محفوظة لعرض النتيجة.",
+    missingOrder: "لم يتم العثور على رقم الطلب.",
     backHome: "العودة إلى الرئيسية",
     backGenerate: "العودة إلى إنشاء السيرة",
     downloadPdf: "تحميل PDF",
@@ -41,6 +42,7 @@ const i18n = {
     langEn: "English",
     loading: "Loading result...",
     noData: "No saved data found to display the result.",
+    missingOrder: "No order ID was found.",
     backHome: "Back Home",
     backGenerate: "Back to CV Builder",
     downloadPdf: "Download PDF",
@@ -327,7 +329,15 @@ export default function ResultPage() {
 
     async function loadResult() {
       try {
-        const orderId = localStorage.getItem(ORDER_KEY);
+        const params = new URLSearchParams(window.location.search);
+        const queryOrderId = params.get("orderId");
+        const storedOrderId = localStorage.getItem(ORDER_KEY);
+        const orderId = queryOrderId || storedOrderId;
+
+        if (queryOrderId) {
+          localStorage.setItem(ORDER_KEY, queryOrderId);
+        }
+
         if (!orderId) {
           setLoading(false);
           return;
