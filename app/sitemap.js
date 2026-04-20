@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = "https://resumefix-auto-finalnew.vercel.app";
+  const baseUrl = "https://resumefix-autobuild.vercel.app";
 
   return [
     {

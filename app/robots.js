@@ -4,6 +4,6 @@ export default function robots() {
       userAgent: "*",
       allow: "/",
     },
-    sitemap: "https://resumefix-auto-finalnew.vercel.app/sitemap.xml",
+    sitemap: "https://resumefix-autobuild.vercel.app/sitemap.xml",
   };
 }
