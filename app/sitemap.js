@@ -3,25 +3,25 @@ export default function sitemap() {
 
   return [
     {
-      url: ${baseUrl}/,
+      url: `${baseUrl}/`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1,
     },
     {
-      url: ${baseUrl}/generate,
+      url: `${baseUrl}/generate`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.9,
     },
     {
-      url: ${baseUrl}/jobs,
+      url: `${baseUrl}/jobs`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.9,
     },
     {
-      url: ${baseUrl}/result,
+      url: `${baseUrl}/result`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.7,
