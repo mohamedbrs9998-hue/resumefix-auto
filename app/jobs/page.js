@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -25,11 +26,13 @@ const i18n = {
     source: "المصدر",
     requirements: "المتطلبات",
     license: "الترخيص",
-    ctaTitle: "هل تريد التقديم على هذه الوظيفة؟",
-    ctaDesc: "أنشئ سيرة ذاتية مناسبة لهذه الوظيفة أولًا، ثم قدّم مباشرة.",
-    createCv: "أنشئ CV لهذه الوظيفة",
+    ctaTitle: "جاهز للتقديم على هذه الوظيفة؟",
+    ctaDesc:
+      "أنشئ سيرة ذاتية احترافية ومناسبة لهذه الوظيفة أولًا، ثم استخدمها مباشرة للتقديم وزيادة فرص قبولك.",
+    createCv: "أنشئ CV لهذه الوظيفة الآن",
     applicationLink: "رابط التقديم",
     jobsBadge: "الوظائف",
+    whyBox: "خطوة ذكية قبل التقديم",
   },
   en: {
     dir: "ltr",
@@ -52,11 +55,13 @@ const i18n = {
     source: "Source",
     requirements: "Requirements",
     license: "License",
-    ctaTitle: "Want to apply for this job?",
-    ctaDesc: "Create a CV tailored for this job first, then apply directly.",
-    createCv: "Create CV for this Job",
+    ctaTitle: "Ready to apply for this role?",
+    ctaDesc:
+      "Create a professional CV tailored for this job first, then use it immediately to apply with stronger impact.",
+    createCv: "Create CV for This Job Now",
     applicationLink: "Application Link",
     jobsBadge: "JOBS",
+    whyBox: "Smart step before applying",
   },
 };
 
@@ -214,19 +219,36 @@ function JobCard({ job, t }) {
 
           <div
             style={{
-              borderRadius: 20,
-              padding: 18,
-              background: "#eff6ff",
+              borderRadius: 22,
+              padding: 20,
+              background: "linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)",
               border: "1px solid #bfdbfe",
-              marginTop: 14,
+              marginTop: 16,
+              boxShadow: "0 10px 24px rgba(37,99,235,0.08)",
             }}
           >
             <div
               style={{
-                fontSize: 22,
+                display: "inline-block",
+                marginBottom: 10,
+                padding: "8px 12px",
+                borderRadius: 999,
+                background: "#ffffff",
+                color: "#2563eb",
+                fontSize: 12,
+                fontWeight: 800,
+              }}
+            >
+              {t.whyBox}
+            </div>
+
+            <div
+              style={{
+                fontSize: 24,
                 fontWeight: 900,
                 color: "#0f172a",
-                marginBottom: 8,
+                marginBottom: 10,
+                lineHeight: 1.3,
               }}
             >
               {t.ctaTitle}
@@ -235,16 +257,16 @@ function JobCard({ job, t }) {
             <div
               style={{
                 color: "#334155",
-                lineHeight: 1.8,
+                lineHeight: 1.85,
                 fontSize: 16,
-                marginBottom: 16,
+                marginBottom: 18,
               }}
             >
               {t.ctaDesc}
             </div>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Link href={`/generate?jobId=${job.id}`} style={primaryBtn}>
+              <Link href={`/generate?jobId=${job.id}`} style={jobCtaBtn}>
                 {t.createCv}
               </Link>
 
@@ -626,14 +648,30 @@ const primaryBtn = {
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  minWidth: 220,
-  padding: "16px 24px",
+  minWidth: 240,
+  padding: "18px 24px",
   borderRadius: 18,
   textDecoration: "none",
   fontWeight: 900,
   fontSize: 17,
   background: "linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)",
   color: "#ffffff",
+  boxShadow: "0 14px 30px rgba(37,99,235,0.20)",
+};
+
+const jobCtaBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  minWidth: 270,
+  padding: "18px 26px",
+  borderRadius: 18,
+  textDecoration: "none",
+  fontWeight: 900,
+  fontSize: 18,
+  background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+  color: "#ffffff",
+  boxShadow: "0 16px 36px rgba(37,99,235,0.24)",
 };
 
 const langBtn = {
@@ -655,4 +693,3 @@ const langActiveBtn = {
   fontWeight: 800,
   cursor: "pointer",
 };
-
