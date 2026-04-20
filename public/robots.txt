@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://resumefix-auto-finalnew.vercel.app/sitemap.xml
+Sitemap: https://resumefix-auto-finalnew.vercel.app/sitemap-v2.xml
